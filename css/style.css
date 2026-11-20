@@ -457,3 +457,14 @@ body.page { background-attachment: fixed; }
   #site-header { left: 16px; right: 16px; max-width: none; justify-content: center; min-height: 118px; }
   #site-header .photo { position: absolute; left: 0; top: 0; }
 }
+
+/* Line icons in the header links */
+.nav-link { display: inline-flex; align-items: center; gap: 8px; }
+.line-icon { width: 17px; height: 17px; flex: none; margin-top: -2px; }
+.nav-link::after { left: 25px; }
+@media (max-width: 560px) {
+  .nav-link span { display: none; }
+  .nav-link::after { left: 0; }
+  .line-icon { width: 21px; height: 21px; }
+  .actions { gap: 0 18px; margin-top: 4px; }
+}
