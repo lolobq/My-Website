@@ -2,7 +2,7 @@
 (function () {
   // Sculptor body, facing right, arms drawn separately in code.
   // H hair  h hair shade  S skin  s skin shade  W eye white  E eye  R lips
-  // T shirt t shirt shade  A apron  P pants  B boots
+  // D dress  d dress shade  L dress trim  B shoes
   const BODY = [
     "....hcHHHh....",
     "...hHHcHHHH...",
@@ -16,26 +16,26 @@
     "hHHcHHHHsSRS..",
     "hHHHHcHHsSS...",
     "hhHHHHHcHs....",
-    ".hHcHHHTsT....",
-    ".hhHcTTTTTT...",
-    "..hhTTTTTTTT..",
-    "...TTTTTTTTT..",
-    "...TAAAAAAAT..",
-    "...TAAAAAAAT..",
-    "...tAAAAAAAt..",
-    "...tAAAAAAAt..",
-    "....AAAAAAA...",
-    "....AAAAAAA...",
-    "....PPPPPPP...",
-    "....PPPPPPP...",
-    "....PPP.PPP...",
-    "....PPP.PPP...",
-    "....PPP.PPP...",
-    "....PPP.PPP...",
-    "....PPP.PPP...",
-    "....PPP.PPP...",
-    "...BBBB.BBBB..",
-    "...BBBB.BBBBB.",
+    ".hHcHHHDsD....",
+    ".hhHcDDDDDD...",
+    "..hhDDDDDDDD..",
+    "...DDDDDDDDD..",
+    "...DDDDDDDDD..",
+    "...dDDDDDDDd..",
+    "....DDDDDDD...",
+    "....dLLLLLd...",
+    "....DDDDDDD...",
+    "...DDDDDDDDD..",
+    "...DDDDDDDDD..",
+    "..dDDDDDDDDDd.",
+    "..DDDDDDDDDDD.",
+    "..dDDDDDDDDDd.",
+    ".dDDDDDDDDDDDd",
+    ".ddDdDDdDDdDdd",
+    "....sS..Ss....",
+    "....sS..Ss....",
+    "...BBB..BBB...",
+    "..BBBB..BBBB..",
   ].map((r) => r.padEnd(14, "."));
 
   const W = 14,
@@ -45,7 +45,7 @@
     const s = (window.SITE && window.SITE.sprite) || {};
     return {
       H: s.hair, h: s.hairShade, c: s.hairLight, S: s.skin, s: s.skinShade, W: "#ffffff", E: "#2b2233",
-      R: s.lips, T: s.shirt, t: s.shirtShade, A: s.apron, P: s.pants, B: s.boots,
+      R: s.lips, D: s.dress, d: s.dressShade, L: s.dressLight, B: s.shoes,
     };
   }
 
@@ -82,13 +82,13 @@
   // Statue = the body, mirrored to face the sculptor, with arms at its sides,
   // rendered in stone tones with light from the upper left.
   const STONE = ["#f1ece2", "#d9d2c4", "#bbb3a3", "#968e7f", "#6b6458"];
-  const STONE_TONE = { c: 0, S: 0, s: 1, W: 0, E: 4, R: 2, H: 1, h: 2, T: 1, t: 2, A: 0, P: 2, B: 3, X: 1, x: 0 };
+  const STONE_TONE = { D: 1, d: 2, L: 0, c: 0, S: 0, s: 1, W: 0, E: 4, R: 2, H: 1, h: 2, T: 1, t: 2, A: 0, P: 2, B: 3, X: 1, x: 0 };
 
   function statueMap() {
     const rows = BODY.map((r) => r.split(""));
-    for (let y = 13; y <= 22; y++) {
-      rows[y][2] = y >= 21 ? "x" : "X";
-      rows[y][12] = y >= 21 ? "x" : "X";
+    for (let y = 13; y <= 20; y++) {
+      rows[y][2] = y >= 19 ? "x" : "X";
+      rows[y][12] = y >= 19 ? "x" : "X";
     }
     const mirrored = rows.map((r) => r.slice().reverse());
     const h = mirrored.length, w = mirrored[0].length;

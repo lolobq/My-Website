@@ -1,7 +1,7 @@
 /* Reflections (blog) and Resume pages. */
 (function () {
   const h = document.getElementById("site-header");
-  if (h) document.documentElement.style.setProperty("--header-h", h.getBoundingClientRect().height + "px");
+  if (h) document.documentElement.style.setProperty("--header-h", h.getBoundingClientRect().bottom + "px");
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   const fmt = (d) => new Date(d + "T12:00:00").toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 

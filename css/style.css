@@ -311,8 +311,6 @@ body.page {
 
 /* ───────────── Small screens ───────────── */
 @media (max-width: 900px) {
-  .actions .btn span { display: none; }
-  .actions .btn { padding: 8px; }
   .name { font-size: 30px; }
 }
 @media (max-width: 560px) {
@@ -322,8 +320,6 @@ body.page {
   .name { font-size: 26px; }
   .tagline { font-size: 11px; letter-spacing: 2px; }
   .actions { gap: 9px; justify-content: flex-start; }
-  .actions .btn { padding: 5px; }
-  .icon { width: 16px; height: 16px; }
   .card { padding: 14px 16px; }
   #time-toggle span { display: none; }
   .card p { font-size: 16.5px; }
@@ -337,3 +333,114 @@ body.page {
   #quote { animation: none; }
   .bob, .q-text::after { animation: none; }
 }
+
+/* ───────────── Refined buttons (override the pixel style) ───────────── */
+.actions { gap: 4px 28px; align-items: center; }
+.nav-link {
+  position: relative;
+  font-family: var(--text);
+  font-size: 15px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink);
+  padding: 6px 0;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 100%; bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transition: right 260ms ease;
+}
+.nav-link:hover::after, .nav-link.is-current::after, .nav-link:focus-visible::after { right: 0; }
+.nav-link:hover { color: var(--clay-dark); }
+.nav-link:focus-visible { outline: none; }
+
+.btn, .btn:active, .btn.is-current, .btn-link, .btn-big {
+  font-family: var(--text);
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 9px 16px;
+  transform: none;
+  transition: background 200ms ease, color 200ms ease;
+}
+.btn:hover { background: var(--ink); color: var(--paper); transform: none; }
+.btn:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+#scroll-hint:hover { transform: translateX(-50%); }
+.btn-link { background: transparent; }
+.btn-big { margin-top: 14px; font-size: 16px; letter-spacing: 3px; padding: 14px 34px; background: var(--ink); color: var(--paper); }
+.btn-big:hover { background: var(--clay-dark); border-color: var(--clay-dark); color: #fff; }
+.btn .icon { width: 12px; height: 12px; }
+.bob { width: 11px; height: 8px; }
+
+@media (max-width: 900px) {
+  .actions { gap: 2px 18px; }
+  .nav-link { font-size: 13px; letter-spacing: 2px; }
+}
+@media (max-width: 560px) {
+  .bar { gap: 4px; }
+  .actions { gap: 0 14px; }
+  .nav-link { font-size: 11.5px; letter-spacing: 1.5px; padding: 3px 0; }
+}
+
+/* ───────────── Floating, rounded header ───────────── */
+#site-header {
+  top: 16px; left: 16px; right: auto;
+  max-width: calc(100vw - 32px);
+  padding: 0;
+  gap: 14px;
+  background: transparent;
+  align-items: stretch;
+}
+#site-header .photo, #site-header .bar {
+  box-shadow: 0 6px 24px rgba(43, 34, 51, 0.18), 0 0 0 1px rgba(43, 34, 51, 0.55);
+}
+#site-header .photo { width: 84px; height: 84px; border-radius: 14px; }
+#site-header .bar {
+  flex: 0 1 auto;
+  gap: 56px;
+  padding: 12px 28px;
+  border-radius: 18px;
+  background: rgba(247, 240, 222, 0.95);
+}
+#scene { top: 0; }
+body.page { background-attachment: fixed; }
+@media (max-width: 900px) {
+  #site-header .bar { gap: 28px; padding: 10px 20px; }
+}
+@media (max-width: 560px) {
+  #site-header { top: 10px; left: 10px; max-width: calc(100vw - 20px); gap: 10px; }
+  #site-header .photo { width: 80px; height: 80px; border-radius: 12px; }
+  #site-header .bar { flex: 1; gap: 4px; padding: 8px 14px; border-radius: 14px; }
+}
+
+/* Photo stands on its own in the corner, larger */
+#site-header { gap: 22px; align-items: flex-start; }
+#site-header .photo { width: 118px; height: 118px; border-radius: 16px; }
+#site-header .bar { margin-top: 8px; }
+@media (max-width: 560px) {
+  #site-header { gap: 12px; }
+  #site-header .photo { width: 96px; height: 96px; border-radius: 14px; }
+  #site-header .bar { margin-top: 0; }
+}
+
+/* Quote and story cards share the rounded, floating look of the header */
+#quote, .card {
+  border-radius: 18px;
+  background: rgba(247, 240, 222, 0.96);
+  box-shadow: 0 8px 28px rgba(43, 34, 51, 0.2), 0 0 0 1px rgba(43, 34, 51, 0.55);
+}
+.gallery img, .gallery .ph { border-radius: 8px; box-shadow: 0 0 0 1px rgba(43, 34, 51, 0.5); }
+.page-main > .pixel-box { border-radius: 18px; box-shadow: 0 8px 28px rgba(43, 34, 51, 0.2), 0 0 0 1px rgba(43, 34, 51, 0.55); }
+.post-list a { border-radius: 10px; box-shadow: 0 0 0 1px rgba(43, 34, 51, 0.5); }
+.resume-frame { border-radius: 8px; box-shadow: 0 0 0 1px rgba(43, 34, 51, 0.5); }
+.gallery img, .gallery .ph { max-height: 92px; }
+.btn { border-radius: 10px; }

@@ -139,25 +139,25 @@
   buildSlab();
 
   function layout() {
-    const headerH = header.getBoundingClientRect().height;
+    const headerH = header.getBoundingClientRect().bottom;
     const sceneH = window.innerHeight - headerH;
     scale = clamp(Math.floor(sceneH / 150), 2, 6);
     W = Math.ceil(window.innerWidth / scale);
-    H = Math.ceil(sceneH / scale);
+    H = Math.ceil(window.innerHeight / scale);
     canvas.width = W; canvas.height = H;
     canvas.style.width = W * scale + "px";
     canvas.style.height = H * scale + "px";
-    canvas.style.top = headerH + "px";
+    canvas.style.top = "0px";
 
     cx = Math.floor(W / 2);
-    fy = Math.floor(H / 2) + 18; // feet line, so the figure is centered
+    fy = Math.floor((headerH + sceneH / 2) / scale) + 18; // figure centered below the header // feet line, so the figure is centered
     hY = fy - 30; // horizon
 
     L.sx = cx - 17; L.sy = fy - Sp.H;
     L.slabX = L.sx + 15; L.slabY = fy - SLAB_H;
 
-    const figTop = headerH + (fy - SLAB_H) * scale;
-    const figBottom = headerH + (fy + 2) * scale;
+    const figTop = (fy - SLAB_H) * scale;
+    const figBottom = (fy + 2) * scale;
     root.style.setProperty("--header-h", headerH + "px");
     root.style.setProperty("--fig-top", figTop + "px");
     root.style.setProperty("--fig-bottom", figBottom + "px");
@@ -243,84 +243,86 @@
   };
   const FLOWERS = ["#f28bb3", "#b591e3", "#f6d55c", "#ffffff", "#f57d6a"];
 
+  // Italian Renaissance garden palette
+  Object.assign(G, {
+    gravel: "#ddd5c3", gravel2: "#d0c7b3", gravelLight: "#ebe5d8", gravelDark: "#b9af9a",
+    box: "#3d7533", boxLight: "#5a9844", boxDark: "#2b5a26",
+    villa: "#f5f0e8", villaShade: "#e0d6c8", villaDark: "#c7bba9",
+    roof: "#d0653a", roofLight: "#e07e4c", roofDark: "#a54b27",
+    arch: "#ecc6b4", archDark: "#c8968a", slate: "#4d5763",
+    pool: "#41b4b6", poolLight: "#7fd6d1", poolDeep: "#2e989d",
+    rimStone: "#f0eadf", rimShade: "#c9c0af",
+    cypress: "#2f5a2e", cypressLight: "#467c3d", cypressDark: "#203f27",
+    tree: "#5d8c53", treeDark: "#497343", treeLight: "#77a568",
+    lawn: "#78b457", citrus: "#f29a2e", travertine: "#e6dccb", travertineGap: "#c7bba6",
+  });
+
   function buildGround(T) {
     groundLayer = document.createElement("canvas");
     groundLayer.width = W; groundLayer.height = H;
     const g = groundLayer.getContext("2d");
     const r = rng(1234);
+    L.pools = []; L.fountains = [];
 
-    // far tree line
-    for (let x = -10; x < W + 10; x += 5 + Math.floor(r() * 6)) {
-      const rad = 5 + Math.floor(r() * 7);
-      disc(g, x, hY - 4 - Math.floor(r() * 5), rad, G.treeFarDark);
-    }
+    // distant woodland
+    for (let x = -10; x < W + 10; x += 4 + Math.floor(r() * 6)) disc(g, x, hY - 7 - Math.floor(r() * 6), 5 + Math.floor(r() * 6), G.treeDark);
     for (let x = -10; x < W + 10; x += 6 + Math.floor(r() * 7)) {
-      const rad = 4 + Math.floor(r() * 5);
-      disc(g, x, hY - 3 - Math.floor(r() * 4), rad, G.treeFar);
+      const y = hY - 6 - Math.floor(r() * 5), rr = 3 + Math.floor(r() * 5);
+      disc(g, x, y, rr, G.tree);
+      px(g, x - 1, y - rr + 1, G.treeLight); px(g, x - 2, y - rr + 2, G.treeLight);
     }
+    // the villa sits off to the right so the quote and cards never hide it
+    const VX = cx + Math.max(46, Math.round(W * 0.3));
+    // cypresses
+    cypress(g, VX - 42, hY - 1, 44); cypress(g, VX + 42, hY - 1, 40);
+    for (let x = 6 + Math.floor(r() * 10); x < W; x += 22 + Math.floor(r() * 26)) {
+      if (Math.abs(x - VX) < 52) continue;
+      cypress(g, x, hY - 1, 24 + Math.floor(r() * 18));
+    }
+    // white garden walls with piers and finials
+    gardenWall(g, -2, VX - 33, hY + 1);
+    gardenWall(g, VX + 33, W + 2, hY + 1);
+    // the villa with its arched loggia
+    villa(g, VX, hY + 1);
 
-    // glasshouse (botanical conservatory) behind, to the right
-    drawGlasshouse(g, cx + Math.max(46, Math.round(W * 0.2)), hY + 1);
-    // a smaller one far left on wide screens
-    if (W > 300) drawGlasshouse(g, cx - Math.round(W * 0.33), hY + 1, 0.6);
-
-    // grass
-    for (let y = hY - 1; y < H; y++) {
-      const t = clamp((y - hY) / (H - hY), 0, 1);
+    // gravel everywhere
+    for (let y = hY + 1; y < H; y++)
       for (let x = 0; x < W; x++) {
-        let c = t + (bayer(x, y) - 0.5) * 0.3 < 0.18 ? G.grassFar : G.grass;
         const h = hash(x, y, 5);
-        if (h < 0.06) c = G.grassDark;
-        else if (h < 0.09) c = G.grassLight;
-        else if (h < 0.0965 && y > hY + 3) c = FLOWERS[Math.floor(hash(x, y, 9) * FLOWERS.length)];
-        px(g, x, y, c);
+        px(g, x, y, h < 0.025 ? G.gravelDark : h < 0.2 ? G.gravel2 : h > 0.95 ? G.gravelLight : G.gravel);
       }
+    // hedges along the wall
+    for (const [a, b] of [[-2, VX - 33], [VX + 33, W + 2]]) {
+      rect(g, a, hY - 2, b - a, 4, G.box);
+      rect(g, a, hY - 2, b - a, 1, G.boxLight);
+      rect(g, a, hY + 1, b - a, 1, G.boxDark);
     }
 
-    // hedge row with flowers along the horizon
-    for (let x = -4; x < W + 4; x += 3) {
-      const rr = 3 + Math.floor(hash(x, 1, 2) * 2);
-      disc(g, x, hY - 1, rr, G.hedgeDark);
+    const PATH = 17; // half-width of the central gravel walk
+    // back row: parterres with pools and flowers
+    beds(g, hY + 4, 9, 40, PATH + 1, PATH + 1, (k) => (k % 2 === 0 ? "pool" : "flowers"));
+    // citrus pots along the terrace edge
+    for (let k = 0; k < 20; k++) {
+      const off = PATH + 3 + k * 46;
+      if (off > W) break;
+      citrusPot(g, cx - off, hY + 4); citrusPot(g, cx + off, hY + 4);
     }
-    for (let x = -4; x < W + 4; x += 3) {
-      const rr = 2 + Math.floor(hash(x, 2, 2) * 2);
-      disc(g, x, hY - 2, rr, G.hedge);
-      px(g, x - 1, hY - 2 - rr + 1, G.hedgeLight);
-      if (hash(x, 3, 2) < 0.35) px(g, x, hY - 3, FLOWERS[Math.floor(hash(x, 4, 2) * 5)]);
+    // middle row: the pool beside her (with fountain) and flower beds
+    beds(g, fy - 10, 12, 44, 29, 32, (k, side) => (side < 0 ? (k % 2 === 0 ? "fountain" : "flowers") : k % 2 === 0 ? "flowers" : "pool"));
+    // front rows
+    let row = 0;
+    for (let y = fy + 14; y < H + 4; y += 34, row++) {
+      beds(g, y, 22, 60, PATH + 1, PATH + 1, (k) => ((k + row) % 3 === 0 ? "topiary" : (k + row) % 3 === 1 ? "flowers" : "pool"));
+      if (row === 0) { citrusPot(g, cx - PATH - 4, y + 2, 1); citrusPot(g, cx + PATH + 4, y + 2, 1); }
     }
 
-    // palms framing the scene
-    palm(g, Math.min(cx - 78, Math.round(W * 0.12)), hY + 10, 30, -1);
-    palm(g, Math.max(cx + 84, Math.round(W * 0.86)), hY + 12, 34, 1);
-
-    // patio of flagstones where she works
-    patio(g, L.slabX + 2, fy + 1, 36, 6);
-
-    // pond next to her
-    pond(g, cx - 50, fy + 2, 22, 7);
-
-    // ferns and plants close by
-    fern(g, cx - 74, fy - 4, 9);
-    fern(g, L.slabX + SLAB_W + 14, fy - 2, 8);
-    pottedPlant(g, L.slabX + SLAB_W + 5, fy);
+    // travertine pavers where she works
+    for (let y = fy - 2; y <= fy + 3; y++)
+      for (let x = cx - 24; x <= cx + 28; x++)
+        px(g, x, y, (x - cx + (y % 2) * 3) % 6 === 0 || y === fy + 1 ? G.travertineGap : hash(x, y, 6) < 0.1 ? G.villaShade : G.travertine);
+    rect(g, cx - 24, fy + 4, 53, 1, G.gravelDark);
+    citrusPot(g, L.slabX + SLAB_W + 7, fy + 1);
     toolbox(g, L.sx - 6, fy);
-
-    // foreground: flower beds, bushes and tall blooms
-    const rows = [fy + 14, fy + 30, fy + 48, fy + 70];
-    rows.forEach((ry, ri) => {
-      if (ry > H + 4) return;
-      for (let x = 4 + ri * 9; x < W; x += 16 + Math.floor(r() * 20)) {
-        if (ri === 0 && Math.abs(x - (cx - 50)) < 28) continue;
-        const kind = r();
-        const y = ry + Math.floor(r() * 8);
-        if (kind < 0.6) bush(g, x, y, 4 + ri + Math.floor(r() * 3), FLOWERS[Math.floor(r() * 5)]);
-        else if (kind < 0.85) tallFlowers(g, x, y, FLOWERS[Math.floor(r() * 5)], 6 + ri * 2);
-        else fern(g, x, y, 6 + ri);
-      }
-    });
-    // big leaves in the bottom corners
-    bigLeaf(g, 0, H + 2, 22, -1);
-    bigLeaf(g, W, H + 2, 24, 1);
 
     if (T.tint) {
       g.globalCompositeOperation = "source-atop";
@@ -330,165 +332,153 @@
     }
   }
 
-  function drawGlasshouse(g, gx, by, k = 1) {
-    const ww = Math.round(30 * k), wh = Math.round(12 * k), rh = Math.round(7 * k);
-    const tw = Math.round(11 * k), th = Math.round(12 * k), dr = tw;
-    const inside = (x, y) => {
-      const dx = x - gx;
-      if (Math.abs(dx) <= ww && y <= by && y >= by - wh) return true;
-      if (Math.abs(dx) <= ww && y < by - wh) {
-        const e = (dx * dx) / (ww * ww) + Math.pow((by - wh - y) / rh, 2);
-        if (e <= 1) return true;
-      }
-      if (Math.abs(dx) <= tw && y <= by && y >= by - wh - th) return true;
-      const dy = by - wh - th - y;
-      if (dy > 0 && dx * dx + dy * dy <= dr * dr + dr * 0.6) return true;
-      return false;
-    };
-    const top = by - wh - th - dr - 4;
-    for (let y = top; y <= by; y++)
-      for (let x = gx - ww - 1; x <= gx + ww + 1; x++) {
-        if (!inside(x, y)) continue;
-        const edge = !inside(x + 1, y) || !inside(x - 1, y) || !inside(x, y - 1);
-        let c;
-        if (edge) c = G.frameDark;
-        else if (y >= by - 1) c = "#b9ad97";
-        else if ((x - gx) % 4 === 0 || y === by - wh || y === by - wh - th) c = G.frame;
-        else c = (x + y) % 9 === 0 || (x + y + 1) % 9 === 0 ? G.glassLight : G.glass;
-        px(g, x, y, c);
-      }
-    // finial + door
-    rect(g, gx, top + 1, 1, 3, G.frameDark);
-    rect(g, gx - 2, by - 6, 5, 6, "#5d7a6a");
-    px(g, gx, by - 7, "#5d7a6a");
-  }
-
-  function palm(g, x, base, h, dir) {
-    let tx = x, ty = base;
-    for (let i = 0; i < h; i++) {
-      const xx = Math.round(x + dir * Math.pow(i / h, 2) * 5);
-      rect(g, xx, base - i, 2, 1, i % 3 === 0 ? G.trunkDark : G.trunk);
-      tx = xx; ty = base - i;
-    }
-    const fronds = [[-1, -0.3], [-0.8, 0.5], [-0.3, -0.9], [0.3, -0.9], [0.8, 0.5], [1, -0.3], [0, -1]];
-    for (const [fx, fyv] of fronds) {
-      const len = 13;
-      for (let i = 0; i <= len; i++) {
-        const t = i / len;
-        const x1 = Math.round(tx + 1 + fx * i);
-        const y1 = Math.round(ty + fyv * i * 0.6 + t * t * 7);
-        px(g, x1, y1, G.leafDark);
-        if (i > 2 && i % 2 === 0) {
-          px(g, x1, y1 + 1, G.leaf);
-          px(g, x1, y1 + 2, G.leafDark);
+  // Lay out hedge-bordered beds outward from the path on both sides.
+  function beds(g, y, h, bw, startL, startR, kindFn) {
+    for (const side of [-1, 1]) {
+      for (let k = 0; k < 20; k++) {
+        const start = side < 0 ? startL : startR;
+        const x0 = side < 0 ? cx - start - (k + 1) * bw - k * 6 : cx + start + k * (bw + 6);
+        if (x0 > W || x0 + bw < 0) break;
+        const kind = kindFn(k, side);
+        const inner = hedgeBox(g, x0, y, bw, h);
+        if (kind === "pool" || kind === "fountain") {
+          pool(g, inner.x, inner.y, inner.w, inner.h);
+          if (kind === "fountain") fountain(g, inner.x + Math.round(inner.w / 2), inner.y + inner.h - 2);
+        } else if (kind === "flowers") {
+          rect(g, inner.x, inner.y, inner.w, inner.h, G.lawn);
+          for (let yy = inner.y + 1; yy < inner.y + inner.h - 1; yy += 2)
+            for (let xx = inner.x + 1 + (yy % 4 === 0 ? 1 : 0); xx < inner.x + inner.w - 1; xx += 2)
+              px(g, xx, yy, hash(xx, yy, 13) < 0.25 ? G.leaf : FLOWERS[Math.floor(hash(xx, yy, 7) * FLOWERS.length)]);
+        } else {
+          rect(g, inner.x, inner.y, inner.w, inner.h, G.lawn);
+          for (let xx = inner.x + 4; xx < inner.x + inner.w - 3; xx += 9) topiary(g, xx, inner.y + inner.h - 1);
         }
-        px(g, x1, y1 - 1, i < len - 2 ? G.leafLight : G.leaf);
-      }
-    }
-    disc(g, tx + 1, ty, 2, G.trunkDark);
-  }
-
-  function patio(g, x0, y0, rx, ry) {
-    for (let dy = -ry; dy <= ry; dy++) {
-      const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy * dy) / ((ry + 0.4) * (ry + 0.4)))));
-      for (let dx = -w; dx <= w; dx++) {
-        const x = x0 + dx, y = y0 + dy;
-        const row = Math.floor((dy + ry) / 3);
-        let c = (dx + rx + row * 4) % 8 === 0 || (dy + ry) % 3 === 0 ? G.stoneGap : G.stone;
-        if (Math.abs(dx) === w) c = G.stoneEdge;
-        else if (hash(x, y, 8) < 0.07) c = G.stoneGap;
-        px(g, x, y, c);
       }
     }
   }
 
-  function pond(g, x0, y0, rx, ry) {
-    L.pond = { x: x0, y: y0, rx, ry };
-    ellipse(g, x0, y0, rx + 2, ry + 2, G.rimDark);
-    for (let a = 0; a < Math.PI * 2; a += 0.17) {
-      const x = Math.round(x0 + Math.cos(a) * (rx + 1)), y = Math.round(y0 + Math.sin(a) * (ry + 1));
-      rect(g, x - 1, y - 1, 3, 2, Math.sin(a) < 0 ? G.rim : G.rimLight);
-      px(g, x - 1, y - 1, G.rimLight);
+  function hedgeBox(g, x, y, w, h) {
+    rect(g, x, y, w, h, G.boxDark);
+    rect(g, x, y, w, h - 1, G.box);
+    rect(g, x, y, w, 1, G.boxLight);
+    for (let i = x; i < x + w; i += 3) px(g, i, y + 1, G.boxLight);
+    return { x: x + 2, y: y + 2, w: w - 4, h: h - 4 };
+  }
+
+  function pool(g, x, y, w, h) {
+    if (w < 4 || h < 3) return;
+    rect(g, x, y, w, h, G.rimStone);
+    rect(g, x, y + h - 1, w, 1, G.rimShade);
+    const ix = x + 1, iy = y + 1, iw = w - 2, ih = h - 2;
+    for (let yy = iy; yy < iy + ih; yy++)
+      for (let xx = ix; xx < ix + iw; xx++) {
+        const t = (yy - iy) / Math.max(1, ih - 1);
+        px(g, xx, yy, t + (bayer(xx, yy) - 0.5) * 0.5 < 0.25 ? G.poolDeep : t < 0.75 ? G.pool : G.poolLight);
+      }
+    L.pools.push({ x: ix, y: iy, w: iw, h: ih });
+  }
+
+  function fountain(g, x, by) {
+    rect(g, x - 5, by - 1, 11, 2, G.rimStone);
+    rect(g, x - 5, by, 11, 1, G.rimShade);
+    rect(g, x - 1, by - 5, 3, 4, G.villaShade);
+    px(g, x - 1, by - 5, G.rimStone);
+    rect(g, x - 3, by - 6, 7, 1, G.rimStone);
+    rect(g, x - 2, by - 5, 5, 1, G.rimShade);
+    rect(g, x, by - 9, 1, 3, G.villaShade);
+    rect(g, x - 2, by - 10, 5, 1, G.rimStone);
+    px(g, x, by - 11, G.rimStone); px(g, x, by - 12, G.villaShade);
+    // two little stone lions guarding it
+    for (const s of [-1, 1]) {
+      const lx = x + s * 8;
+      rect(g, lx - 1, by - 3, 3, 2, G.villa); px(g, lx + s, by - 4, G.villa); px(g, lx + s, by - 4, G.villaShade);
+      rect(g, lx - 1, by - 1, 3, 1, G.rimShade);
     }
-    ellipse(g, x0, y0, rx, ry, G.water);
-    ellipse(g, x0 + 2, y0 + 1, Math.round(rx * 0.55), Math.round(ry * 0.5), G.waterDeep);
-    rect(g, x0 - rx + 4, y0 - ry, rx * 2 - 8, 1, G.waterEdge);
-    // lily pads
-    const pads = [[-12, 1], [7, 3], [13, -2], [-4, -3]];
-    pads.forEach(([dx, dy], i) => {
-      ellipse(g, x0 + dx, y0 + dy, 2, 1, G.leaf);
-      px(g, x0 + dx + 1, y0 + dy - 1, G.water);
-      px(g, x0 + dx - 1, y0 + dy - 1, G.leafLight);
-      if (i % 2 === 0) { px(g, x0 + dx, y0 + dy - 1, "#f6a7c4"); px(g, x0 + dx, y0 + dy - 2, "#fbd0e0"); }
-    });
-    // reeds at the back of the pond
-    const reeds = [[-rx + 2, 13], [-rx + 4, 9], [-rx + 6, 15], [-rx + 8, 11], [rx - 4, 10], [rx - 2, 14]];
-    for (const [dx, h] of reeds) {
-      const x = x0 + dx, yb = y0 - ry + 1;
-      rect(g, x, yb - h, 1, h, G.leafDark);
-      px(g, x + 1, yb - h + 3, G.leaf);
-      if (h > 10) rect(g, x, yb - h - 1, 1, 3, "#7a4b2a");
+    L.fountains.push({ x, by });
+  }
+
+  function citrusPot(g, x, base, big = 0) {
+    const pw = 5 + big;
+    rect(g, x - Math.floor(pw / 2) - 1, base - 6, pw + 2, 1, G.potLight);
+    rect(g, x - Math.floor(pw / 2), base - 5, pw, 4, G.pot);
+    rect(g, x + Math.ceil(pw / 2) - 2, base - 5, 2, 4, G.potDark);
+    rect(g, x - Math.floor(pw / 2) + 1, base - 1, pw - 2, 1, G.potDark);
+    rect(g, x, base - 8, 1, 2, G.trunkDark);
+    const cy = base - 11 - big, rr = 3 + big;
+    disc(g, x, cy, rr, G.leafDark);
+    disc(g, x - 1, cy - 1, rr - 1, G.leaf);
+    px(g, x - 2, cy - 2, G.leafLight);
+    for (let i = 0; i < 5 + big * 2; i++) px(g, x + Math.round((hash(x, i, 3) - 0.5) * rr * 2), cy + Math.round((hash(i, x, 4) - 0.5) * rr * 2), G.citrus);
+  }
+
+  function cypress(g, x, base, h) {
+    for (let i = 0; i < h; i++) {
+      const t = i / h;
+      const w = Math.max(0, Math.round(3.2 * Math.sin(Math.PI * Math.pow(1 - t, 0.55)) + (hash(x, i, 2) < 0.3 ? 1 : 0)));
+      const y = base - i;
+      rect(g, x - w, y, w * 2 + 1, 1, G.cypress);
+      if (w > 0) { px(g, x - w, y, G.cypressLight); px(g, x + w, y, G.cypressDark); }
+      if (hash(x, i, 9) < 0.2 && w > 1) px(g, x - w + 1, y, G.cypressLight);
+    }
+    px(g, x, base - h, G.cypress);
+  }
+
+  function gardenWall(g, x0, x1, by) {
+    rect(g, x0, by - 9, x1 - x0, 9, G.villa);
+    rect(g, x0, by - 9, x1 - x0, 1, G.villaDark);
+    rect(g, x0, by - 8, x1 - x0, 1, G.villaShade);
+    for (let x = x1 - 2; x > x0; x -= 26) {
+      rect(g, x - 2, by - 12, 5, 12, G.villa);
+      rect(g, x + 2, by - 12, 1, 12, G.villaShade);
+      rect(g, x - 3, by - 13, 7, 1, G.villaDark);
+      disc(g, x, by - 15, 1, G.villa);
+      px(g, x, by - 17, G.villaShade);
     }
   }
 
-  function fern(g, x, y, s) {
-    for (let k = 0; k < 7; k++) {
-      const a = Math.PI * (0.12 + (k / 6) * 0.76);
-      const len = s + (k === 3 ? 2 : 0);
-      for (let i = 0; i <= len; i++) {
-        const t = i / len;
-        const fx = Math.round(x - Math.cos(a) * i * 1.2);
-        const fyy = Math.round(y - Math.sin(a) * i + t * t * 5);
-        px(g, fx, fyy, G.leafDark);
-        if (i % 2 === 1 && i < len) { px(g, fx, fyy - 1, G.leafLight); px(g, fx + 1, fyy, G.leaf); }
+  function villa(g, x, by) {
+    const hw = 32, wh = 21, rh = 6, top = by - wh;
+    rect(g, x - hw, top, hw * 2 + 1, wh, G.villa);
+    rect(g, x + hw - 5, top, 6, wh, G.villaShade);
+    rect(g, x - hw, top, hw * 2 + 1, 1, G.villaDark);
+    rect(g, x - hw, top + 1, hw * 2 + 1, 1, G.villaShade);
+    // hipped terracotta roof
+    for (let i = 0; i < rh; i++) {
+      const inset = (rh - 1 - i) * 2, y = top - rh + i;
+      for (let xx = x - hw - 2 + inset; xx <= x + hw + 2 - inset; xx++)
+        px(g, xx, y, i === rh - 1 ? G.roofDark : (xx + i) % 3 === 0 ? G.roofDark : (xx % 2 ? G.roof : G.roofLight));
+    }
+    // three-arched loggia
+    for (let k = 0; k < 3; k++) {
+      const ax = x - 13 + k * 9;
+      for (let y = top + 5; y < by - 1; y++) {
+        const j = y - (top + 5);
+        const inset = j === 0 ? 2 : j === 1 ? 1 : 0;
+        for (let xx = ax + inset; xx < ax + 7 - inset; xx++)
+          px(g, xx, y, j < 3 ? G.archDark : k === 1 && xx >= ax + 2 && xx <= ax + 4 && y > by - 9 ? G.slate : G.arch);
       }
     }
-  }
-
-  function bush(g, x, y, s, flower) {
-    disc(g, x, y, s, G.leafDeep);
-    disc(g, x - s + 2, y + 1, s - 2, G.leafDark);
-    disc(g, x + s - 2, y + 1, s - 2, G.leafDark);
-    disc(g, x - 1, y - 1, s - 1, G.leaf);
-    for (let i = 0; i < s * 3; i++) {
-      const fx = x + Math.round((hash(x, i, 1) - 0.5) * s * 2);
-      const fyy = y + Math.round((hash(i, x, 2) - 0.6) * s * 1.6);
-      if (hash(i, i, x) < 0.5) px(g, fx, fyy, G.leafLight);
-      else { px(g, fx, fyy, flower); }
+    // balustrade
+    rect(g, x - 15, by - 5, 31, 1, G.villa);
+    for (let xx = x - 14; xx <= x + 14; xx += 2) rect(g, xx, by - 4, 1, 3, G.villa);
+    rect(g, x - 15, by - 2, 31, 1, G.villaShade);
+    // windows and doors on the wings
+    for (const wx of [x - 25, x + 22]) {
+      rect(g, wx - 1, top + 7, 5, 12, G.villaShade);
+      rect(g, wx, top + 8, 3, 11, G.slate);
+      px(g, wx + 1, top + 8, "#6d7884");
     }
+    rect(g, x - hw - 1, by - 1, hw * 2 + 3, 1, G.villaDark);
+    // urns on the terrace
+    for (const ux of [x - 30, x + 30]) { rect(g, ux - 1, by - 4, 3, 3, G.pot); px(g, ux, by - 5, G.leaf); }
   }
 
-  function tallFlowers(g, x, y, c, h) {
-    for (let k = -2; k <= 2; k++) {
-      const hh = h - Math.abs(k) * 2 + Math.floor(hash(x, k, 4) * 3);
-      const sx = x + k * 2;
-      rect(g, sx, y - hh, 1, hh, G.leafDark);
-      px(g, sx + (k < 0 ? -1 : 1), y - Math.floor(hh / 2), G.leaf);
-      rect(g, sx - 1, y - hh - 1, 3, 1, c);
-      px(g, sx, y - hh - 2, c);
-      px(g, sx, y - hh - 1, "#f6d55c");
+  function topiary(g, x, base) {
+    for (let i = 0; i < 7; i++) {
+      const w = Math.floor((7 - i) / 2.5);
+      rect(g, x - w, base - i - 1, w * 2 + 1, 1, i === 0 ? G.boxDark : G.box);
+      px(g, x - w, base - i - 1, G.boxLight);
     }
-  }
-
-  function bigLeaf(g, x, y, s, dir) {
-    for (let k = 0; k < 4; k++) {
-      const a = (-Math.PI / 2) + dir * (-0.9 + k * 0.45);
-      const len = s - k * 2;
-      for (let i = 0; i < len; i++) {
-        const w = Math.round(Math.sin((i / len) * Math.PI) * 4);
-        const lx = Math.round(x + Math.cos(a) * i * -dir * dir + (dir < 0 ? Math.abs(Math.cos(a)) * i : -Math.abs(Math.cos(a)) * i));
-        const ly = Math.round(y + Math.sin(a) * i);
-        for (let j = -w; j <= w; j++) px(g, lx + j, ly, j === 0 ? G.leafLight : Math.abs(j) === w ? G.leafDeep : G.leafDark);
-      }
-    }
-  }
-
-  function pottedPlant(g, x, base) {
-    rect(g, x, base - 6, 7, 6, G.pot);
-    rect(g, x - 1, base - 7, 9, 2, G.potLight);
-    rect(g, x + 5, base - 5, 2, 5, G.potDark);
-    rect(g, x - 1, base - 7, 9, 1, G.potDark);
-    fern(g, x + 3, base - 8, 6);
   }
 
   function toolbox(g, x, base) {
@@ -497,7 +487,7 @@
     rect(g, x - 3, base - 1, 7, 1, G.woodDark);
     rect(g, x - 1, base - 6, 3, 1, G.woodDark);
     px(g, x - 1, base - 5, G.woodDark); px(g, x + 1, base - 5, G.woodDark);
-    px(g, x + 3, base - 6, "#b8bcc4"); px(g, x + 3, base - 5, "#8a8f99"); // a spare chisel
+    px(g, x + 3, base - 6, "#b8bcc4"); px(g, x + 3, base - 5, "#8a8f99");
   }
 
   function buildBackground() {
@@ -569,7 +559,7 @@
 
   function arm(g, sx, sy, hx, hy, shirt, skin) {
     line(g, sx, sy, hx, hy, (x, y, t) => {
-      const c = t < 0.5 ? shirt : skin;
+      const c = t < 0.3 ? shirt : skin;
       px(g, x, y, c); px(g, x, y + 1, c);
     });
   }
@@ -596,7 +586,7 @@
     lastStrikeFrame = swinging ? frame : 1;
 
     // far arm (to the chisel) behind the body
-    arm(g, sx + 9, sy + 14, ch.x, ch.y, pal.t, pal.s);
+    arm(g, sx + 9, sy + 14, ch.x, ch.y, pal.d, pal.s);
     const blink = Math.floor(now / 100) % 45 === 0;
     Sp.drawBody(g, sx, sy, { blink });
     // chisel
@@ -607,7 +597,7 @@
       rect(g, ch.x, ch.y + 1, 1, 3, "#b8bcc4");
     }
     // near arm (mallet)
-    arm(g, sx + 7, sy + 15, mh.x, mh.y, pal.T, pal.S);
+    arm(g, sx + 7, sy + 15, mh.x, mh.y, pal.D, pal.S);
     // mallet
     if (!done) {
       line(g, mh.x, mh.y + 2, mh.x, mh.y - 1, (x, y) => px(g, x, y, G.woodDark));
@@ -673,19 +663,27 @@
     }
     ctx.drawImage(groundLayer, 0, 0);
 
-    // water shimmer
-    if (L.pond) {
-      const { x, y, rx, ry } = L.pond;
-      for (let k = 0; k < 7; k++) {
-        const sx = Math.round(x - rx + 3 + ((k * 13 + now * 0.004 * (1 + (k % 3))) % (rx * 2 - 6)));
-        const sy = y - ry + 2 + ((k * 5) % (ry * 2 - 3));
-        const nx = (sx - x) / rx, ny = (sy - y) / ry;
-        if (nx * nx + ny * ny < 0.75) {
-          ctx.fillStyle = timeKey === "night" ? "#8e9fd8" : G.shimmer;
-          ctx.fillRect(sx, sy, 2 + (k % 2), 1);
-        }
+    // water shimmer in the pools, and the fountain's spray
+    const shimmer = timeKey === "night" ? "#8e9fd8" : "#d6f4f2";
+    (L.pools || []).forEach((pl, pi) => {
+      const n = Math.max(1, Math.round(pl.w / 12));
+      for (let k = 0; k < n; k++) {
+        const sx = pl.x + Math.floor((k * 17 + pi * 7 + now * 0.003 * (1 + (k % 3))) % Math.max(1, pl.w - 2));
+        const sy = pl.y + ((k * 3 + pi) % Math.max(1, pl.h));
+        ctx.fillStyle = shimmer;
+        ctx.fillRect(sx, sy, Math.min(2, pl.x + pl.w - sx), 1);
       }
-    }
+    });
+    (L.fountains || []).forEach((f) => {
+      if (reduceMotion) return;
+      for (let k = 0; k < 6; k++) {
+        const t = ((now / 700 + k / 6) % 1);
+        const side = k % 2 ? 1 : -1;
+        const x = Math.round(f.x + side * t * 4);
+        const y = Math.round(f.by - 12 + t * t * 12 - t * 2);
+        px(ctx, x, y, shimmer);
+      }
+    });
 
     // actors on their own layer so night/sunset can tint them
     actx.clearRect(0, 0, W, H);

@@ -101,9 +101,9 @@
         ${buttons
           .map(
             (b) =>
-              `<a class="btn${here === b.href ? " is-current" : ""}" href="${b.href}"${
+              `<a class="nav-link${here === b.href ? " is-current" : ""}" href="${b.href}"${
                 b.external ? ' target="_blank" rel="noopener"' : ""
-              }>${icon(b.id)}<span>${b.label}</span></a>`
+              }>${b.label}</a>`
           )
           .join("")}
       </nav>
