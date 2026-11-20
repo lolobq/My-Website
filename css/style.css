@@ -11,8 +11,8 @@
   --header-h: 104px;
   --fig-top: 50vh;
   --fig-bottom: 60vh;
-  --pixel: "Pixelify Sans", ui-monospace, monospace;
-  --sans: "IBM Plex Sans", system-ui, sans-serif;
+  --display: "Cormorant Garamond", "EB Garamond", Garamond, Georgia, serif;
+  --text: "EB Garamond", Garamond, Georgia, serif;
   color-scheme: light;
 }
 
@@ -21,7 +21,7 @@ html, body { margin: 0; }
 body {
   background: #78c3e6;
   color: var(--ink);
-  font-family: var(--sans);
+  font-family: var(--text);
   -webkit-font-smoothing: antialiased;
 }
 a { color: inherit; }
@@ -75,17 +75,17 @@ a { color: inherit; }
 }
 .who { text-decoration: none; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .name {
-  font-family: var(--pixel);
-  font-weight: 700;
-  font-size: 30px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 38px;
   line-height: 1;
   letter-spacing: 0.5px;
 }
 .tagline {
-  font-family: var(--pixel);
-  font-size: 16px;
+  font-family: var(--text);
+  font-size: 15px;
   color: var(--moss-dark);
-  letter-spacing: 1px;
+  letter-spacing: 3px;
   text-transform: uppercase;
 }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
@@ -94,9 +94,10 @@ a { color: inherit; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--pixel);
-  font-size: 16px;
+  font-family: var(--text);
+  font-size: 17px;
   font-weight: 500;
+  letter-spacing: 0.3px;
   color: var(--ink);
   text-decoration: none;
   background: #fffaf0;
@@ -157,9 +158,11 @@ a { color: inherit; }
 .q-text {
   margin: 0;
   min-height: 2.6em;
-  font-family: var(--pixel);
-  font-size: clamp(18px, 2.3vw, 26px);
-  line-height: 1.3;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(22px, 2.6vw, 32px);
+  line-height: 1.25;
 }
 .q-text::after {
   content: "";
@@ -173,8 +176,10 @@ a { color: inherit; }
 #quote.is-typed .q-text::after { display: none; }
 #quote figcaption {
   margin-top: 8px;
-  font-family: var(--pixel);
-  font-size: 16px;
+  font-family: var(--text);
+  font-size: 15px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
   color: var(--moss-dark);
   opacity: 0;
   transition: opacity 600ms ease;
@@ -226,20 +231,20 @@ a { color: inherit; }
 .card.zone-bottom { max-height: calc(100vh - var(--fig-bottom) - 40px); }
 .kicker {
   margin: 0 0 6px;
-  font-family: var(--pixel);
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-family: var(--text);
+  font-size: 13px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
   color: var(--clay-dark);
 }
 .card h2 {
   margin: 0 0 10px;
-  font-family: var(--pixel);
+  font-family: var(--display);
   font-weight: 600;
-  font-size: clamp(20px, 2.2vw, 26px);
-  line-height: 1.2;
+  font-size: clamp(24px, 2.6vw, 32px);
+  line-height: 1.15;
 }
-.card p { margin: 0 0 8px; font-size: 16px; line-height: 1.5; color: var(--ink-soft); }
+.card p { margin: 0 0 8px; font-size: 18px; line-height: 1.5; color: var(--ink-soft); }
 .gallery { display: flex; gap: 10px; margin: 12px 0 4px; }
 .gallery img, .gallery .ph {
   flex: 1;
@@ -254,8 +259,9 @@ a { color: inherit; }
   place-items: center;
   padding: 6px;
   text-align: center;
-  font-family: var(--pixel);
-  font-size: 12px;
+  font-family: var(--text);
+  font-style: italic;
+  font-size: 14px;
   color: var(--ink-soft);
   background:
     repeating-linear-gradient(45deg, transparent 0 6px, rgba(43, 34, 51, 0.06) 6px 12px),
@@ -289,16 +295,16 @@ body.page {
   padding: calc(var(--header-h) + 36px) 20px 60px;
 }
 .page-main > .pixel-box { padding: 28px 32px; }
-.page-main h1 { font-family: var(--pixel); font-size: 34px; margin: 0 0 6px; }
+.page-main h1 { font-family: var(--display); font-size: 44px; margin: 0 0 6px; }
 .page-main .lede { margin: 0 0 24px; color: var(--ink-soft); }
 .post-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
 .post-list a { display: block; text-decoration: none; padding: 16px 18px; background: #fffaf0; box-shadow: 0 0 0 3px var(--ink); }
 .post-list a:hover { background: #fff; }
-.post-list time, .post time { font-family: var(--pixel); font-size: 14px; color: var(--clay-dark); }
-.post-list h2 { font-family: var(--pixel); margin: 4px 0 6px; font-size: 22px; }
+.post-list time, .post time { font-family: var(--text); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--clay-dark); }
+.post-list h2 { font-family: var(--display); margin: 4px 0 6px; font-size: 28px; }
 .post-list p { margin: 0; color: var(--ink-soft); }
 .post h1 { margin-top: 6px; }
-.post p { line-height: 1.7; font-size: 17px; }
+.post p { line-height: 1.7; font-size: 19px; }
 .back { display: inline-block; margin-bottom: 18px; }
 .resume-frame { width: 100%; height: 78vh; border: 0; box-shadow: 0 0 0 3px var(--ink); background: #fff; }
 .resume-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -307,21 +313,21 @@ body.page {
 @media (max-width: 900px) {
   .actions .btn span { display: none; }
   .actions .btn { padding: 8px; }
-  .name { font-size: 24px; }
+  .name { font-size: 30px; }
 }
 @media (max-width: 560px) {
   #site-header { padding: 10px 12px; gap: 12px; }
   .photo { width: 92px; height: 92px; }
   .bar { flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; padding: 8px 12px; }
-  .name { font-size: 21px; }
-  .tagline { font-size: 13px; }
+  .name { font-size: 26px; }
+  .tagline { font-size: 11px; letter-spacing: 2px; }
   .actions { gap: 9px; justify-content: flex-start; }
   .actions .btn { padding: 5px; }
   .icon { width: 16px; height: 16px; }
   .card { padding: 14px 16px; }
   #time-toggle span { display: none; }
-  .card p { font-size: 14.5px; }
-  .card h2 { font-size: 18px; }
+  .card p { font-size: 16.5px; }
+  .card h2 { font-size: 22px; }
   .gallery .ph, .gallery img { max-height: 90px; }
   #quote { padding: 14px 16px; }
   .page-main > .pixel-box { padding: 20px; }
