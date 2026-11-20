@@ -7,7 +7,7 @@
 
 window.SITE = {
   name: "Lauren Bourque",
-  tagline: "Software Engineer & Entrepreneur",
+  tagline: "Engineer & Entrepreneur",
 
   // Square photo in the top-left corner. Put the file in /assets and set the path,
   // e.g. "assets/lauren.jpg". Leave empty to show the pixel portrait instead.

@@ -655,3 +655,7 @@ body.page { background: linear-gradient(180deg, #bcdcef 0%, #e3eff0 45%, #efe9da
   #site-header .nav-link { font-size: 13px; }
   #site-header .actions { gap: 4px 6px; }
 }
+
+/* Name and title share one left edge */
+#site-header .who { align-items: flex-start; text-align: left; }
+#site-header .name, #site-header .tagline { margin-left: 0; padding-left: 0; }
