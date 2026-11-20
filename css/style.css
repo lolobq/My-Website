@@ -508,3 +508,29 @@ body.page { background-attachment: fixed; }
 @media (min-width: 1390px) {
   #time-toggle { top: 24px; right: 16px; } /* matches the bar: header top 16px + bar margin 8px */
 }
+
+/* Bottom-center dock: time of day + music */
+#dock {
+  position: fixed;
+  z-index: 6;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+#dock #time-toggle, #dock #time-toggle[style] { position: static; top: auto; right: auto; }
+@media (min-width: 1390px) { #dock #time-toggle { top: auto; right: auto; } }
+#dock .btn { box-shadow: 0 4px 16px rgba(43, 34, 51, 0.18); }
+#dock .line-icon { width: 15px; height: 15px; margin-top: 0; }
+#music-toggle[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+#music-toggle.is-missing { opacity: 0.6; }
+#dock .btn { white-space: nowrap; }
+@media (max-width: 560px) {
+  #dock span { display: none; }
+  #dock .btn { padding: 9px 12px; }
+  #dock .line-icon { width: 18px; height: 18px; }
+}
+@media (max-width: 900px) {
+  .card, .card.side-left, .card.side-right { max-height: calc(100vh - var(--fig-bottom) - 84px); top: calc((var(--fig-bottom) + 100vh - 56px) / 2 + 6px); }
+}

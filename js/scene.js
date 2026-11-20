@@ -823,3 +823,23 @@
   // for screenshots / debugging
   window.__garden = { setTime: (k) => { timeKey = k; document.body.dataset.time = k; setTimeLabel(); buildBackground(); } };
 })();
+
+/* Background music: off until the visitor turns it on (browsers block autoplay). */
+(function () {
+  const btn = document.getElementById("music-toggle");
+  const audio = document.getElementById("bg-music");
+  if (!btn || !audio) return;
+  const label = btn.querySelector("span");
+  audio.volume = 0.45;
+  const set = (on) => {
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    label.textContent = on ? "Music on" : "Music off";
+  };
+  btn.addEventListener("click", async () => {
+    if (audio.paused) {
+      try { await audio.play(); set(true); }
+      catch (e) { btn.classList.add("is-missing"); label.textContent = "Music unavailable"; }
+    } else { audio.pause(); set(false); }
+  });
+  audio.addEventListener("error", () => { btn.classList.add("is-missing"); set(false); label.textContent = "Music unavailable"; });
+})();
