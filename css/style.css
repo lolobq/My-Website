@@ -506,5 +506,5 @@ body.page { background-attachment: fixed; }
 
 /* Time-of-day toggle tucked into the top-right corner on wide screens */
 @media (min-width: 1390px) {
-  #time-toggle { top: 16px; right: 16px; }
+  #time-toggle { top: 24px; right: 16px; } /* matches the bar: header top 16px + bar margin 8px */
 }
