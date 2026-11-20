@@ -444,3 +444,16 @@ body.page { background-attachment: fixed; }
 .resume-frame { border-radius: 8px; box-shadow: 0 0 0 1px rgba(43, 34, 51, 0.5); }
 .gallery img, .gallery .ph { max-height: 92px; }
 .btn { border-radius: 10px; }
+
+/* Softer corners everywhere */
+#site-header .photo { border-radius: 10px; }
+#site-header .bar, #quote, .card, .page-main > .pixel-box { border-radius: 10px; }
+.btn { border-radius: 6px; }
+.gallery img, .gallery .ph, .resume-frame { border-radius: 5px; }
+.post-list a { border-radius: 7px; }
+
+/* Wide screens: bar centered, photo stays in the top-left corner */
+@media (min-width: 1300px) {
+  #site-header { left: 16px; right: 16px; max-width: none; justify-content: center; min-height: 118px; }
+  #site-header .photo { position: absolute; left: 0; top: 0; }
+}
