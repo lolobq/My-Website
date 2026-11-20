@@ -7,7 +7,7 @@
 
 window.SITE = {
   name: "Lauren Bourque",
-  tagline: "Engineer & Entrepreneur",
+  tagline: "Software Engineer & Entrepreneur",
 
   // Square photo in the top-left corner. Put the file in /assets and set the path,
   // e.g. "assets/lauren.jpg". Leave empty to show the pixel portrait instead.
@@ -81,6 +81,28 @@ window.CARDS = [
     body: ["The statue's never really finished. If you're building something worth chiseling at, I'd love to hear about it."],
     cta: true,
   },
+];
+
+/*
+ * ABOUT, PROJECTS, SPEAKING pages. body/description are arrays of paragraphs.
+ */
+window.ABOUT = {
+  title: "About me",
+  body: [
+    "I'm a software engineer and startup co-founder in Charlotte, NC. By day I build production financial systems at Wells Fargo; the rest of the time I'm building an AI platform that helps people learn to communicate.",
+    "Placeholder: replace this with your own about text.", // TODO
+  ],
+};
+
+window.PROJECTS = [
+  // TODO: add real projects. links: [{ label, href }]
+  { title: "A stealth AI startup", tag: "Founder · 2026", description: ["Beta launching January 2027."], links: [] },
+  { title: "Health tracker", tag: "Side project", description: ["The app I built to track my contest prep after hip surgery."], links: [{ label: "See it", href: "#" }] },
+];
+
+window.TALKS = [
+  // TODO: add real talks. { title, event, date, description, links }
+  { title: "Innovation panels & podcasts", event: "Wells Fargo and beyond", date: "", description: ["Sharing career advice and lessons on innovation with audiences of 300+."], links: [] },
 ];
 
 /*

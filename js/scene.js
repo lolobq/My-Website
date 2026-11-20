@@ -351,14 +351,54 @@
           pool(g, inner.x, inner.y, inner.w, inner.h);
           if (kind === "fountain") fountain(g, inner.x + Math.round(inner.w / 2), inner.y + inner.h - 2);
         } else if (kind === "flowers") {
-          rect(g, inner.x, inner.y, inner.w, inner.h, G.lawn);
-          for (let yy = inner.y + 1; yy < inner.y + inner.h - 1; yy += 2)
-            for (let xx = inner.x + 1 + (yy % 4 === 0 ? 1 : 0); xx < inner.x + inner.w - 1; xx += 2)
-              px(g, xx, yy, hash(xx, yy, 13) < 0.25 ? G.leaf : FLOWERS[Math.floor(hash(xx, yy, 7) * FLOWERS.length)]);
+          plantBed(g, inner, k * 7 + (side < 0 ? 3 : 11) + y);
         } else {
           rect(g, inner.x, inner.y, inner.w, inner.h, G.lawn);
-          for (let xx = inner.x + 4; xx < inner.x + inner.w - 3; xx += 9) topiary(g, xx, inner.y + inner.h - 1);
+          for (let yy = inner.y; yy < inner.y + inner.h; yy++) for (let xx = inner.x; xx < inner.x + inner.w; xx++) if (hash(xx, yy, 31) < 0.12) px(g, xx, yy, G.leafLight);
+          const pal = PALETTES[(k + y) % PALETTES.length];
+          for (let xx = inner.x + 1; xx < inner.x + inner.w - 1; xx += 2) spike(g, xx, inner.y + 4, 4 + (xx % 3), pal[(xx >> 1) % 2], pal[1]);
+          for (let xx = inner.x + 1; xx < inner.x + inner.w - 1; xx += 2) mound(g, xx, inner.y + inner.h - 2, pal[(xx >> 1) % 3]);
+          for (let xx = inner.x + 4; xx < inner.x + inner.w - 3; xx += 9) topiary(g, xx, inner.y + inner.h - 2);
         }
+      }
+    }
+  }
+
+  // Layered, colorful plantings: tall spikes at the back, flowering mounds in front, shadows for depth.
+  const PALETTES = [
+    ["#9a7fd1", "#b9a2e8", "#f2c94c"],   // lavender + yellow
+    ["#e8607a", "#f59ab0", "#ffffff"],   // roses
+    ["#f08a3c", "#f6c14b", "#d94f3d"],   // marigold / poppy
+    ["#5a7fd8", "#8fb0f0", "#f4f0ff"],   // delphinium blue
+    ["#d873c4", "#f2a6df", "#f6d55c"],   // foxglove pink
+  ];
+  Object.assign(G, { soil: "#6f5a3f", soilDark: "#57452f" });
+  function mound(g, x, y, c) {
+    px(g, x - 1, y + 1, G.leafDeep); px(g, x, y + 1, G.leafDeep); px(g, x + 1, y + 1, G.leafDeep);
+    px(g, x - 1, y, G.leafDark); px(g, x, y, G.leaf); px(g, x + 1, y, G.leafDark);
+    px(g, x, y - 1, G.leaf);
+    px(g, x, y - 1, c); px(g, x - 1, y - 1 + (x % 2), c);
+  }
+  function spike(g, x, base, h, c, c2) {
+    rect(g, x, base - h + 3, 1, h - 3, G.leafDark);
+    px(g, x - 1, base - 2, G.leaf); px(g, x + 1, base - 3, G.leaf);
+    for (let i = 0; i < 3; i++) px(g, x, base - h + i, i === 0 ? c2 : c);
+    px(g, x + 1, base - h + 1, c2);
+  }
+  function plantBed(g, r, seed) {
+    rect(g, r.x, r.y, r.w, r.h, G.soil);
+    rect(g, r.x, r.y, r.w, 1, G.soilDark);
+    const palA = PALETTES[seed % PALETTES.length], palB = PALETTES[(seed + 2) % PALETTES.length];
+    // back row: tall flower spikes
+    for (let x = r.x + 1; x < r.x + r.w - 1; x += 2) {
+      const h = 4 + Math.floor(hash(x, seed, 21) * 3);
+      spike(g, x, r.y + Math.min(4, r.h - 1), Math.min(h, r.y + 4 - (r.y - 3)), palA[hash(x, seed, 22) < 0.6 ? 0 : 1], palA[1]);
+    }
+    // middle and front rows: flowering mounds in alternating colors
+    for (let y = r.y + 4, row = 0; y < r.y + r.h - 1; y += 3, row++) {
+      for (let x = r.x + 1 + (row % 2); x < r.x + r.w - 1; x += 3) {
+        const pal = (Math.floor((x - r.x) / 6) + row) % 2 ? palA : palB;
+        mound(g, x, y, pal[Math.floor(hash(x, y, seed) * 3)]);
       }
     }
   }

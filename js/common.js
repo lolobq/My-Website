@@ -74,6 +74,10 @@
 
   // Thin line icons (adapted from Feather Icons, MIT license).
   const LINE = {
+    about: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
+    projects: '<path d="M12 2l10 5-10 5L2 7z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>',
+    speaking: '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4M8 22h8"/>',
+    contact: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/>',
     reflections: '<path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/>',
     email: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/>',
     resume: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/>',
@@ -87,11 +91,12 @@
     `mailto:${S.email}` + (S.emailSubject ? `?subject=${encodeURIComponent(S.emailSubject)}` : "");
 
   const buttons = [
-    { id: "reflections", label: "Reflections", href: "reflections.html" },
-    { id: "email", label: "Email", href: mailto },
+    { id: "about", label: "About", href: "about.html" },
     { id: "resume", label: "Resume", href: "resume.html" },
-    { id: "linkedin", label: "LinkedIn", href: S.linkedin, external: true },
-    { id: "github", label: "GitHub", href: S.github, external: true },
+    { id: "projects", label: "Projects", href: "projects.html" },
+    { id: "reflections", label: "Reflections", href: "reflections.html" },
+    { id: "speaking", label: "Speaking", href: "speaking.html" },
+    { id: "contact", label: "Contact", href: "contact.html" },
   ];
 
   const header = document.getElementById("site-header");
@@ -100,10 +105,10 @@
   const here = location.pathname.split("/").pop() || "index.html";
 
   header.innerHTML = `
-    <a class="photo pixel-box" href="index.html" aria-label="${S.name}, home">
-      ${S.photo ? `<img src="${S.photo}" alt="Photo of ${S.name}">` : `<canvas id="avatar" width="24" height="24" aria-hidden="true"></canvas>`}
-    </a>
-    <div class="bar pixel-box">
+    <div class="bar">
+      <a class="photo" href="index.html" aria-label="${S.name}, home">
+        ${S.photo ? `<img src="${S.photo}" alt="Photo of ${S.name}">` : `<canvas id="avatar" width="24" height="24" aria-hidden="true"></canvas>`}
+      </a>
       <a class="who" href="index.html">
         <span class="name">${S.name}</span>
         <span class="tagline">${S.tagline}</span>
