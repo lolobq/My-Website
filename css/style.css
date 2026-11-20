@@ -599,3 +599,21 @@ body.page { background-attachment: fixed; }
 .contact-email { color: var(--ink-soft); font-size: 16px !important; }
 #scroll-hint { white-space: nowrap; }
 body.page { background: linear-gradient(180deg, #bcdcef 0%, #e3eff0 45%, #efe9da 100%) fixed; }
+
+/* Photo fills the bar's top-left corner, edge to edge */
+#site-header .bar, #site-header .bar[class] { padding: 0 32px 0 0; gap: 22px; align-items: center; }
+#site-header .photo, #site-header .photo[class] {
+  width: 88px; height: 88px;
+  border-radius: 0;
+  box-shadow: none;
+  align-self: stretch;
+  overflow: hidden;
+}
+#site-header .photo:hover { transform: none; box-shadow: none; }
+#site-header .photo img { transition: transform 300ms ease; }
+#site-header .photo:hover img { transform: scale(1.05); }
+@media (max-width: 560px) {
+  #site-header .bar, #site-header .bar[class] { padding: 0 14px 0 0; gap: 0 12px; }
+  #site-header .photo, #site-header .photo[class] { width: 64px; height: 64px; align-self: flex-start; }
+  #site-header .actions { padding: 8px 0 10px 14px; margin-top: 0; }
+}
