@@ -106,9 +106,6 @@
 
   header.innerHTML = `
     <div class="bar">
-      <a class="photo" href="index.html" aria-label="${S.name}, home">
-        ${S.photo ? `<img src="${S.photo}" alt="Photo of ${S.name}">` : `<canvas id="avatar" width="24" height="24" aria-hidden="true"></canvas>`}
-      </a>
       <a class="who" href="index.html">
         <span class="name">${S.name}</span>
         <span class="tagline">${S.tagline}</span>
@@ -119,7 +116,7 @@
             (b) =>
               `<a class="nav-link${here === b.href ? " is-current" : ""}" href="${b.href}"${
                 b.external ? ' target="_blank" rel="noopener"' : ""
-              } aria-label="${b.label}">${lineIcon(b.id)}<span>${b.label}</span></a>`
+              } >${b.label}</a>`
           )
           .join("")}
       </nav>
@@ -127,7 +124,7 @@
 
   // Photo and name return to the start of the story (smoothly, if already on the home page).
   const onHome = here === "index.html" || here === "";
-  header.querySelectorAll(".photo, .who").forEach((el) => {
+  header.querySelectorAll(".who").forEach((el) => {
     el.setAttribute("title", "Back to the start");
     el.addEventListener("click", (e) => {
       if (!onHome) return;
