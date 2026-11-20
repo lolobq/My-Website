@@ -59,22 +59,22 @@
   // ───────────────────────── time of day ─────────────────────────
   const TIMES = {
     morning: {
-      label: "Morning", sky: ["#e9a7a0", "#f4c3aa", "#fbdcbc", "#fdeed3"],
+      label: "Morning", sky: ["#7f86c9", "#b996bb", "#e6a9a6", "#f6c4a8", "#fcdcbb", "#fff0d6"],
       sun: { x: 0.18, y: 0.42, r: 7, c: "#fff1c9", glow: "#fde2b8" },
       cloud: "#fff7ef", cloudShade: "#f0cfc4", tint: null, star: false,
     },
     day: {
-      label: "Day", sky: ["#5aaedb", "#78c3e6", "#a2d8ee", "#cfeef6"],
+      label: "Day", sky: ["#2a76c2", "#4592d3", "#66afe0", "#8fc9ea", "#b8def0", "#e2f0ec"],
       sun: { x: 0.8, y: 0.2, r: 6, c: "#fffbe0", glow: "#d9f2f8" },
       cloud: "#ffffff", cloudShade: "#d3e9f2", tint: null, star: false,
     },
     sunset: {
-      label: "Sunset", sky: ["#3f3570", "#8a4c86", "#df7a6c", "#f6ad79", "#fbd49a"],
+      label: "Sunset", sky: ["#262158", "#4f377a", "#8f4a84", "#cf6370", "#ef8c6e", "#f7b47a", "#fcd99a"],
       sun: { x: 0.74, y: 0.78, r: 10, c: "#ffe2a0", glow: "#f9bf86" },
       cloud: "#f7b9a0", cloudShade: "#b8698a", tint: "rgba(255,120,80,0.14)", star: false,
     },
     night: {
-      label: "Night", sky: ["#0b1030", "#141c45", "#1f2a5f", "#2d3b78"],
+      label: "Night", sky: ["#05081e", "#0b1134", "#131b47", "#1d285c", "#2b3a76", "#3d4d8a"],
       sun: { x: 0.78, y: 0.22, r: 5, c: "#eef0ff", glow: "#3a4890", moon: true },
       cloud: "#3a4682", cloudShade: "#28316a", tint: "rgba(16,24,72,0.52)", star: true,
     },
@@ -184,7 +184,7 @@
     skyLayer = document.createElement("canvas");
     skyLayer.width = W; skyLayer.height = H;
     const g = skyLayer.getContext("2d");
-    const bands = gradientBands(T.sky, 7);
+    const bands = gradientBands(T.sky, 14);
     const top = hY + 4;
     for (let y = 0; y < top; y++) {
       const f = (y / top) * (bands.length - 1);
@@ -206,26 +206,31 @@
     disc(g, sx, sy, s.r, s.c);
     if (s.moon) disc(g, sx + 3, sy - 2, s.r - 1, T.sky[0]);
 
-    // clouds
+    // clouds: a hazy far layer and a brighter near layer, lit from above
     const r = rng(42 + ORDER.indexOf(timeKey));
     clouds = [];
-    const n = Math.max(3, Math.round(W / 90));
+    const n = Math.max(4, Math.round(W / 60));
     for (let i = 0; i < n; i++) {
-      const cw = 16 + Math.floor(r() * 18), ch = 9;
+      const near = i % 2 === 0;
+      const cw = (near ? 20 : 12) + Math.floor(r() * (near ? 22 : 12)), ch = near ? 11 : 7;
       const c = document.createElement("canvas");
-      c.width = cw + 4; c.height = ch + 2;
+      c.width = cw + 4; c.height = ch + 3;
       const cg = c.getContext("2d");
-      const puffs = 3 + Math.floor(r() * 3);
-      for (let p = 0; p < puffs; p++) {
-        const pr = 2 + Math.floor(r() * 3);
-        disc(cg, 2 + pr + Math.floor(r() * (cw - pr * 2)), ch - pr - 1, pr, T.cloudShade);
+      const puffs = [];
+      for (let p = 0; p < 3 + Math.floor(r() * 4); p++) {
+        const pr = (near ? 2 : 1) + Math.floor(r() * (near ? 4 : 3));
+        puffs.push([2 + pr + Math.floor(r() * Math.max(1, cw - pr * 2)), ch - pr, pr]);
       }
-      for (let p = 0; p < puffs; p++) {
-        const pr = 2 + Math.floor(r() * 3);
-        disc(cg, 2 + pr + Math.floor(r() * (cw - pr * 2)), ch - pr - 2, pr, T.cloud);
-      }
-      clouds.push({ img: c, x: r() * W, y: 4 + Math.floor(r() * Math.max(4, hY * 0.45)), v: 0.012 + r() * 0.02 });
+      for (const [x, y, pr] of puffs) disc(cg, x, y, pr, T.cloudShade);
+      for (const [x, y, pr] of puffs) disc(cg, x - 1, y - 1, Math.max(1, pr - 1), T.cloud);
+      for (const [x, y, pr] of puffs) { px(cg, x - 1, y - pr, T.cloudLight || "#ffffff"); px(cg, x - 2, y - pr + 1, T.cloudLight || "#ffffff"); }
+      cg.fillStyle = T.cloudShade; cg.fillRect(2, ch, cw, 1);
+      clouds.push({ img: c, x: r() * W, y: 3 + Math.floor(r() * Math.max(4, hY * (near ? 0.5 : 0.35))), v: near ? 0.03 + r() * 0.03 : 0.008 + r() * 0.01, alpha: near ? 1 : 0.7 });
     }
+    clouds.sort((a, b) => a.v - b.v);
+    // wispy high streaks
+    L.wisps = Array.from({ length: Math.max(2, Math.round(W / 120)) }, () => ({ x: r() * W, y: 4 + Math.floor(r() * hY * 0.4), w: 18 + Math.floor(r() * 30), v: 0.006 + r() * 0.008 }));
+    L.sun = { x: sx, y: sy, r: s.r };
   }
 
   // ground palette
@@ -649,6 +654,200 @@
   }
 
   // ───────────────────────── render loop ─────────────────────────
+  // ───────────────────────── living sky, water and light ─────────────────────────
+  const birds = [];
+  let nextBirds = performance.now() + 2500;
+  function drawSkyLife(now, t, T) {
+    const S = L.sun;
+    // pulsing glow and slow rays around the sun / moon
+    if (S) {
+      const pulse = 0.5 + 0.5 * Math.sin(t * 1.3);
+      const gr = ctx.createRadialGradient(S.x, S.y, S.r, S.x, S.y, S.r * 6 + pulse * 3);
+      gr.addColorStop(0, timeKey === "night" ? "rgba(190,200,255,0.30)" : "rgba(255,246,210,0.45)");
+      gr.addColorStop(1, "rgba(255,246,210,0)");
+      ctx.fillStyle = gr;
+      ctx.fillRect(S.x - S.r * 8, S.y - S.r * 8, S.r * 16, S.r * 16);
+      if (timeKey !== "night") {
+        ctx.save();
+        ctx.globalAlpha = 0.12 + pulse * 0.06;
+        ctx.strokeStyle = "#fff6d8";
+        ctx.lineWidth = 1;
+        for (let k = 0; k < 10; k++) {
+          const a = t * 0.08 + (k * Math.PI) / 5;
+          const r0 = S.r + 3, r1 = S.r + 9 + (k % 2) * 6 + pulse * 2;
+          ctx.beginPath();
+          ctx.moveTo(Math.round(S.x + Math.cos(a) * r0) + 0.5, Math.round(S.y + Math.sin(a) * r0) + 0.5);
+          ctx.lineTo(Math.round(S.x + Math.cos(a) * r1) + 0.5, Math.round(S.y + Math.sin(a) * r1) + 0.5);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+    // twinkling stars
+    if (T.star) {
+      for (let k = 0; k < 40; k++) {
+        const x = Math.floor(hash(k, 1, 77) * W), y = Math.floor(hash(k, 2, 77) * (hY - 10));
+        const tw = Math.sin(t * (1.5 + (k % 5) * 0.4) + k);
+        if (tw > 0.6) { px(ctx, x, y, "#ffffff"); if (tw > 0.93) { px(ctx, x - 1, y, "#9fb0ff"); px(ctx, x + 1, y, "#9fb0ff"); px(ctx, x, y - 1, "#9fb0ff"); px(ctx, x, y + 1, "#9fb0ff"); } }
+      }
+    }
+    // wisps
+    ctx.save();
+    ctx.globalAlpha = timeKey === "night" ? 0.15 : 0.35;
+    ctx.fillStyle = T.cloudLight || "#ffffff";
+    for (const w of L.wisps || []) {
+      w.x += reduceMotion ? 0 : w.v;
+      if (w.x > W + 4) w.x = -w.w;
+      ctx.fillRect(Math.round(w.x), w.y, w.w, 1);
+      ctx.fillRect(Math.round(w.x) + 6, w.y + 2, Math.round(w.w * 0.6), 1);
+    }
+    ctx.restore();
+    // clouds (far → near)
+    for (const c of clouds) {
+      if (!reduceMotion) c.x += c.v;
+      if (c.x > W + 4) c.x = -c.img.width;
+      ctx.globalAlpha = c.alpha;
+      ctx.drawImage(c.img, Math.round(c.x), Math.round(c.y + Math.sin(t * 0.3 + c.v * 300) * 0.6));
+    }
+    ctx.globalAlpha = 1;
+    // a small flock of birds now and then (not at night)
+    if (!reduceMotion && timeKey !== "night" && now > nextBirds && birds.length === 0) {
+      const y0 = 6 + Math.random() * hY * 0.4, dir = Math.random() < 0.5 ? 1 : -1, n = 3 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < n; i++) birds.push({ x: (dir > 0 ? -8 : W + 8) - dir * i * 6, y: y0 + Math.abs(i - (n >> 1)) * 3, dir, ph: Math.random() * 6 });
+      nextBirds = now + 9000 + Math.random() * 9000;
+    }
+    for (let i = birds.length - 1; i >= 0; i--) {
+      const b = birds[i];
+      b.x += 0.22 * b.dir; b.ph += 0.12;
+      const up = Math.sin(b.ph) > 0;
+      const x = Math.round(b.x), y = Math.round(b.y + Math.sin(b.ph * 0.3) * 1.5);
+      const c = timeKey === "sunset" ? "#3a2440" : "#2f3a4f";
+      px(ctx, x, y, c);
+      px(ctx, x - 1, y + (up ? -1 : 0), c); px(ctx, x + 1, y + (up ? -1 : 0), c);
+      px(ctx, x - 2, y + (up ? -1 : 1), c); px(ctx, x + 2, y + (up ? -1 : 1), c);
+      if (b.x < -20 || b.x > W + 20) birds.splice(i, 1);
+    }
+  }
+
+  function drawCloudShadows(t) {
+    if (timeKey === "night") return;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, hY + 2, W, H); ctx.clip();
+    ctx.fillStyle = "rgba(25,45,35,0.07)";
+    for (let k = 0; k < 3; k++) {
+      const span = W + 120;
+      const x = ((t * (3 + k) + k * span / 3) % span) - 60;
+      const y = hY + 12 + k * ((H - hY) / 3);
+      ctx.beginPath(); ctx.ellipse(x, y, 34 + k * 8, 7 + k * 2, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawWater(now, t) {
+    const night = timeKey === "night";
+    const gloss = night ? "rgba(170,185,255,0.35)" : "rgba(235,255,255,0.45)";
+    (L.pools || []).forEach((pl, pi) => {
+      // a glossy highlight band sweeping slowly across each pool
+      const span = pl.w + pl.h * 2 + 10;
+      const off = ((t * 6 + pi * 17) % span) - pl.h;
+      ctx.fillStyle = gloss;
+      for (let yy = 0; yy < pl.h; yy++) {
+        const x0 = Math.round(off + yy);
+        for (let dx = 0; dx < 3; dx++) {
+          const x = x0 + dx * (dx === 2 ? 2 : 1);
+          if (x >= 0 && x < pl.w) ctx.fillRect(pl.x + x, pl.y + yy, 1, 1);
+        }
+      }
+      // ripples drifting across
+      ctx.fillStyle = night ? "#8e9fd8" : "#d6f4f2";
+      const n = Math.max(1, Math.round(pl.w / 10));
+      for (let k = 0; k < n; k++) {
+        const sx = pl.x + Math.floor((k * 17 + pi * 7 + t * 3 * (1 + (k % 3))) % Math.max(1, pl.w - 2));
+        const sy = pl.y + ((k * 3 + pi) % Math.max(1, pl.h));
+        ctx.fillRect(sx, sy, Math.min(2, pl.x + pl.w - sx), 1);
+      }
+      // sparkles that flash and fade
+      const tick = Math.floor(now / 160);
+      for (let k = 0; k < Math.max(1, Math.round(pl.w / 16)); k++) {
+        if (hash(tick, k, pi) > 0.55) continue;
+        const sx = pl.x + Math.floor(hash(tick, k, pi + 9) * pl.w), sy = pl.y + Math.floor(hash(tick, k, pi + 3) * pl.h);
+        px(ctx, sx, sy, "#ffffff");
+        if (hash(tick, k, pi + 5) < 0.3) { px(ctx, sx - 1, sy, gloss); px(ctx, sx + 1, sy, gloss); }
+      }
+    });
+    // fountains: a jet from the top, spilling over both basins, with rings where it lands
+    (L.fountains || []).forEach((f) => {
+      if (reduceMotion) return;
+      const light = night ? "#b9c6ff" : "#f2feff", mid = night ? "#8e9fd8" : "#a6e6ec";
+      const flick = Math.floor(t * 8) % 2;
+      for (let i = 0; i < 4 + flick; i++) px(ctx, f.x, f.by - 13 - i, i % 2 ? mid : light);
+      for (let k = 0; k < 10; k++) {
+        const ph = (t * 1.1 + k / 10) % 1, side = k % 2 ? 1 : -1;
+        px(ctx, Math.round(f.x + side * ph * 3), Math.round(f.by - 17 + ph * ph * 7 - ph * 2 + 0), ph < 0.5 ? light : mid);
+        const ph2 = (t * 1.3 + k / 10 + 0.37) % 1;
+        px(ctx, Math.round(f.x + side * (3 + ph2 * 3)), Math.round(f.by - 6 + ph2 * ph2 * 7), ph2 < 0.6 ? light : mid);
+      }
+      // expanding rings in the pool
+      for (let k = 0; k < 2; k++) {
+        const ph = (t * 0.7 + k * 0.5) % 1;
+        const rx = 7 + Math.round(ph * 6), ry = 1 + Math.round(ph * 1.5);
+        ctx.globalAlpha = 0.6 * (1 - ph);
+        ctx.fillStyle = light;
+        for (let a = 0; a < Math.PI * 2; a += 0.35) {
+          const x = Math.round(f.x + Math.cos(a) * rx), y = Math.round(f.by + 1 + Math.sin(a) * ry);
+          ctx.fillRect(x, y, 1, 1);
+        }
+        ctx.globalAlpha = 1;
+      }
+    });
+  }
+
+  // drifting pollen / petals catching the light
+  const motes = Array.from({ length: 16 }, (_, i) => ({ s: i * 13.7 }));
+  function drawMotes(t) {
+    if (reduceMotion || timeKey === "night") return;
+    const c = timeKey === "sunset" ? "rgba(255,214,150,0.8)" : timeKey === "morning" ? "rgba(255,230,235,0.85)" : "rgba(255,255,240,0.8)";
+    ctx.fillStyle = c;
+    for (const m of motes) {
+      const x = Math.round(((m.s * 23 + t * (2 + (m.s % 3))) % (W + 20)) - 10 + Math.sin(t * 0.8 + m.s) * 4);
+      const y = Math.round(hY - 20 + ((m.s * 17) % (H - hY + 10)) + Math.sin(t * 0.6 + m.s * 2) * 6);
+      if (Math.sin(t * 1.7 + m.s) > -0.3) ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  // soft bloom + warm light + vignette for a glossier finish
+  let bloom, bctx;
+  function drawGlow(T, t) {
+    const bw = Math.max(8, Math.round(W / 4)), bh = Math.max(8, Math.round(H / 4));
+    if (!bloom || bloom.width !== bw || bloom.height !== bh) {
+      bloom = document.createElement("canvas"); bloom.width = bw; bloom.height = bh; bctx = bloom.getContext("2d");
+    }
+    bctx.imageSmoothingEnabled = true;
+    bctx.clearRect(0, 0, bw, bh);
+    bctx.drawImage(canvas, 0, 0, bw, bh);
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = timeKey === "night" ? 0.14 : 0.2;
+    ctx.drawImage(bloom, 0, 0, W, H);
+    ctx.globalCompositeOperation = "soft-light";
+    const S = L.sun || { x: W * 0.8, y: 10 };
+    const lg = ctx.createRadialGradient(S.x, S.y, 0, S.x, S.y, Math.max(W, H) * 0.9);
+    lg.addColorStop(0, timeKey === "night" ? "rgba(150,170,255,0.35)" : "rgba(255,236,190,0.55)");
+    lg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = lg;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "source-over";
+    const vg = ctx.createRadialGradient(W / 2, H * 0.55, Math.min(W, H) * 0.45, W / 2, H * 0.55, Math.max(W, H) * 0.8);
+    vg.addColorStop(0, "rgba(20,18,40,0)");
+    vg.addColorStop(1, "rgba(20,18,40,0.22)");
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    ctx.imageSmoothingEnabled = false;
+  }
+
   function frame(now) {
     // ease the drawn progress toward the scroll position for smoothness
     shownProgress += (progress - shownProgress) * (reduceMotion ? 1 : 0.25);
@@ -656,35 +855,12 @@
     const p = shownProgress;
     const T = TIMES[timeKey];
 
+    const t = reduceMotion ? 0 : now / 1000;
     ctx.drawImage(skyLayer, 0, 0);
-    for (const c of clouds) {
-      if (!reduceMotion) c.x += c.v;
-      if (c.x > W + 4) c.x = -c.img.width;
-      ctx.drawImage(c.img, Math.round(c.x), c.y);
-    }
+    drawSkyLife(now, t, T);
     ctx.drawImage(groundLayer, 0, 0);
-
-    // water shimmer in the pools, and the fountain's spray
-    const shimmer = timeKey === "night" ? "#8e9fd8" : "#d6f4f2";
-    (L.pools || []).forEach((pl, pi) => {
-      const n = Math.max(1, Math.round(pl.w / 12));
-      for (let k = 0; k < n; k++) {
-        const sx = pl.x + Math.floor((k * 17 + pi * 7 + now * 0.003 * (1 + (k % 3))) % Math.max(1, pl.w - 2));
-        const sy = pl.y + ((k * 3 + pi) % Math.max(1, pl.h));
-        ctx.fillStyle = shimmer;
-        ctx.fillRect(sx, sy, Math.min(2, pl.x + pl.w - sx), 1);
-      }
-    });
-    (L.fountains || []).forEach((f) => {
-      if (reduceMotion) return;
-      for (let k = 0; k < 6; k++) {
-        const t = ((now / 700 + k / 6) % 1);
-        const side = k % 2 ? 1 : -1;
-        const x = Math.round(f.x + side * t * 4);
-        const y = Math.round(f.by - 12 + t * t * 12 - t * 2);
-        px(ctx, x, y, shimmer);
-      }
-    });
+    drawCloudShadows(t);
+    drawWater(now, t);
 
     // actors on their own layer so night/sunset can tint them
     actx.clearRect(0, 0, W, H);
@@ -716,6 +892,8 @@
         px(ctx, x, y, "#f2ffb0");
       }
     }
+    drawMotes(t);
+    drawGlow(T, t);
     requestAnimationFrame(frame);
   }
 
