@@ -89,7 +89,7 @@ window.CARDS = [
 window.ABOUT = {
   title: "About me",
   body: [
-    "I'm a software engineer and startup co-founder in Charlotte, NC. By day I build production financial systems at Wells Fargo; the rest of the time I'm building an AI platform that helps people learn to communicate.",
+    "I'm a software engineer and startup co-founder in Charlotte, NC. By day I build production financial systems at Wells Fargo; the rest of the time I'm building an AI platform for anyone to master communication.",
     "Placeholder: replace this with your own about text.", // TODO
   ],
 };
