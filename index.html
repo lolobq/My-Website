@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lauren Bourque · Engineer & Entrepreneur</title>
+  <meta name="description" content="Lauren Bourque, software engineer and entrepreneur. Scroll to watch the sculpture take shape.">
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="home">
+  <header id="site-header"></header>
+
+  <main>
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <p class="sr-only">A pixel-art botanical garden with a pond. Lauren stands beside a slab of stone and carves a statue of herself as you scroll.</p>
+
+    <figure id="quote" class="zone-top-fixed">
+      <blockquote>
+        <p class="q-text" data-text="“Every block of stone has a statue inside it, and it is the task of the sculptor to discover it.”"></p>
+        <span class="sr-only">Every block of stone has a statue inside it, and it is the task of the sculptor to discover it.</span>
+      </blockquote>
+      <figcaption>Michelangelo</figcaption>
+    </figure>
+
+    <button id="scroll-hint" class="btn" type="button">
+      <span>Scroll to reveal</span>
+      <svg class="icon bob" viewBox="0 0 7 5" aria-hidden="true" shape-rendering="crispEdges" fill="currentColor"><rect x="0" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="2" y="2" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/></svg>
+    </button>
+
+    <section id="story" aria-label="My story"></section>
+
+    <button id="time-toggle" class="btn btn-small" type="button" title="Change the time of day in the garden">
+      <svg class="icon" viewBox="0 0 7 7" aria-hidden="true" shape-rendering="crispEdges" fill="currentColor"><rect x="2" y="2" width="3" height="3"/><rect x="3" y="0" width="1" height="1"/><rect x="3" y="6" width="1" height="1"/><rect x="0" y="3" width="1" height="1"/><rect x="6" y="3" width="1" height="1"/></svg>
+      <span>Day</span>
+    </button>
+
+    <div id="scroll-space" aria-hidden="true"></div>
+  </main>
+
+  <script src="js/content.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/scene.js"></script>
+</body>
+</html>
