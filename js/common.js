@@ -120,6 +120,17 @@
       </nav>
     </div>`;
 
+  // Photo and name return to the start of the story (smoothly, if already on the home page).
+  const onHome = here === "index.html" || here === "";
+  header.querySelectorAll(".photo, .who").forEach((el) => {
+    el.setAttribute("title", "Back to the start");
+    el.addEventListener("click", (e) => {
+      if (!onHome) return;
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    });
+  });
+
   // Placeholder portrait: the sprite's head drawn into the photo square.
   const av = document.getElementById("avatar");
   if (av && window.Sprites) window.Sprites.drawAvatar(av);

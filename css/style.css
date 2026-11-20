@@ -453,7 +453,8 @@ body.page { background-attachment: fixed; }
 .post-list a { border-radius: 7px; }
 
 /* Wide screens: bar centered, photo stays in the top-left corner */
-@media (min-width: 1300px) {
+@media (min-width: 1390px) {
+  #site-header .bar { gap: clamp(56px, calc(100vw - 1330px), 200px); }
   #site-header { left: 16px; right: 16px; max-width: none; justify-content: center; min-height: 118px; }
   #site-header .photo { position: absolute; left: 0; top: 0; }
 }
@@ -468,3 +469,37 @@ body.page { background-attachment: fixed; }
   .line-icon { width: 21px; height: 21px; }
   .actions { gap: 0 18px; margin-top: 4px; }
 }
+
+/* ───────────── Story cards beside the sculptor, rising bottom → top ───────────── */
+.card, .card.side-left, .card.side-right {
+  --y: 100vh;
+  position: fixed;
+  top: calc((var(--header-h) + 100vh) / 2 + 8px);
+  width: min(560px, calc(50vw - var(--fig-half) - 56px));
+  max-height: calc(100vh - var(--header-h) - 56px);
+  transform: translateY(calc(-50% + var(--y)));
+  padding: 26px 30px;
+}
+.card.side-left { left: auto; right: calc(50vw + var(--fig-half) + 24px); }
+.card.side-right { left: calc(50vw + var(--fig-half) + 24px); right: auto; }
+.card-cta { text-align: left; }
+.gallery { gap: 12px; }
+.gallery img, .gallery .ph { max-height: 220px; }
+
+/* Narrow screens: no room beside her, so cards rise into the area below */
+@media (max-width: 900px) {
+  .card, .card.side-left, .card.side-right {
+    left: 50%; right: auto;
+    top: calc((var(--fig-bottom) + 100vh) / 2 + 6px);
+    width: calc(100vw - 32px);
+    max-height: calc(100vh - var(--fig-bottom) - 28px);
+    transform: translate(-50%, calc(-50% + var(--y)));
+    padding: 16px 18px;
+  }
+  .gallery img, .gallery .ph { max-height: 92px; }
+}
+
+/* Circular profile photo */
+#site-header .photo { border-radius: 50%; transition: transform 200ms ease, box-shadow 200ms ease; }
+#site-header .photo:hover { transform: scale(1.04); box-shadow: 0 8px 28px rgba(43, 34, 51, 0.28), 0 0 0 2px var(--paper), 0 0 0 3px rgba(43, 34, 51, 0.55); }
+#site-header .photo:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }

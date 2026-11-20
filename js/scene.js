@@ -161,6 +161,7 @@
     root.style.setProperty("--header-h", headerH + "px");
     root.style.setProperty("--fig-top", figTop + "px");
     root.style.setProperty("--fig-bottom", figBottom + "px");
+    root.style.setProperty("--fig-half", 30 * scale + "px");
 
     actors = document.createElement("canvas");
     actors.width = W; actors.height = H;
@@ -733,7 +734,7 @@
 
   const cardEls = CARDS.map((c, i) => {
     const el = document.createElement("article");
-    el.className = `card pixel-box ${i % 2 === 0 ? "zone-top" : "zone-bottom"}${c.cta ? " card-cta" : ""}`;
+    el.className = `card pixel-box ${i % 2 === 0 ? "side-left" : "side-right"}${c.cta ? " card-cta" : ""}`;
     el.setAttribute("aria-hidden", "true");
     const imgs = (c.images || [])
       .map((im) =>
@@ -761,24 +762,26 @@
     quote.classList.toggle("is-gone", started);
     hint.classList.toggle("is-gone", started);
     cardEls.forEach((el, i) => {
-      const q = p * N - i; // 0..1 inside this card's segment
-      let x; // in vw
-      if (q <= 0) x = 110;
-      else if (q < 0.28) x = 110 * (1 - ease(q / 0.28));
-      else if (q < 0.82 || i === N - 1) x = 0;
-      else if (q < 1) x = -110 * ease((q - 0.82) / 0.18);
-      else x = -110;
-      el.style.transform = `translate(calc(-50% + ${x.toFixed(2)}vw), -50%)`;
-      const visible = Math.abs(x) < 60;
+      const q = p * (N - 0.2) - i - 0.2; // each card: enter -0.2..0.2, rest, exit 0.8..1.2 (overlaps the next one entering)
+      // rises from below the screen, rests beside the sculptor, then exits upward
+      let y; // in vh
+      if (q <= -0.2) y = 100;
+      else if (q < 0.2) y = 100 * (1 - ease((q + 0.2) / 0.4));
+      else if (q < 0.8 || i === N - 1) y = 0;
+      else if (q < 1.2) y = -100 * ease((q - 0.8) / 0.4);
+      else y = -100;
+      el.style.setProperty("--y", `${y.toFixed(2)}vh`);
+      el.style.opacity = String(clamp(1 - Math.abs(y) / 85, 0, 1));
+      const visible = Math.abs(y) < 50;
       el.setAttribute("aria-hidden", visible ? "false" : "true");
       el.classList.toggle("is-active", visible);
-      el.style.visibility = Math.abs(x) >= 109 ? "hidden" : "visible";
+      el.style.visibility = Math.abs(y) >= 99 ? "hidden" : "visible";
     });
   }
 
   hint.addEventListener("click", () => {
     const max = document.documentElement.scrollHeight - window.innerHeight;
-    window.scrollTo({ top: (max * 0.32) / N, behavior: reduceMotion ? "auto" : "smooth" });
+    window.scrollTo({ top: (max * 0.45) / (N - 0.2), behavior: reduceMotion ? "auto" : "smooth" });
   });
 
   // time of day toggle
