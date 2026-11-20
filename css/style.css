@@ -503,3 +503,8 @@ body.page { background-attachment: fixed; }
 #site-header .photo { border-radius: 50%; transition: transform 200ms ease, box-shadow 200ms ease; }
 #site-header .photo:hover { transform: scale(1.04); box-shadow: 0 8px 28px rgba(43, 34, 51, 0.28), 0 0 0 2px var(--paper), 0 0 0 3px rgba(43, 34, 51, 0.55); }
 #site-header .photo:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+/* Time-of-day toggle tucked into the top-right corner on wide screens */
+@media (min-width: 1390px) {
+  #time-toggle { top: 16px; right: 16px; }
+}
