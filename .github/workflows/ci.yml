@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests (content, HTML, unit, e2e, a11y, links, Lighthouse)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Fails in CI if the DISCLOSURE_TERMS secret is missing, so the disclosure
+      # check can never be skipped silently on a deploy. Terms are never printed.
+      - name: Content integrity and disclosure
+        run: npm run test:content
+        env:
+          DISCLOSURE_TERMS: ${{ secrets.DISCLOSURE_TERMS }}
+
+      - name: HTML validity
+        if: ${{ !cancelled() }}
+        run: npm run test:html
+
+      - name: Unit tests
+        if: ${{ !cancelled() }}
+        run: npm run test:unit
+
+      # Visual baseline comparison (npm run test:baseline) is intentionally NOT run in CI:
+      # the baseline in tests/baseline/ was captured with Chromium on Windows, and fonts
+      # and canvas anti-aliasing render differently on Linux, so every image would diff.
+      # Run it locally on Windows before merging.
+      - name: End-to-end (mobile 375 + desktop 1440)
+        if: ${{ !cancelled() }}
+        run: npm run test:e2e
+
+      - name: Accessibility (axe)
+        if: ${{ !cancelled() }}
+        run: npm run test:a11y
+
+      - name: Links (internal + external; LinkedIn and calendar.app.google reported as skipped)
+        if: ${{ !cancelled() }}
+        run: npm run test:links
+
+      - name: Lighthouse CI
+        if: ${{ !cancelled() }}
+        run: npm run test:lhci
+
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            playwright-report/
+            test-results/
+            .lighthouseci/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      # Ship only site files: no tests/, node_modules/, docs/, or tool configs.
+      - name: Stage site files
+        run: |
+          mkdir -p _site
+          cp -- *.html _site/
+          cp -r css js assets _site/
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
