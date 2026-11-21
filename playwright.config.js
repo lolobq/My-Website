@@ -57,6 +57,23 @@ module.exports = defineConfig({
     // Functional e2e / accessibility specs (*.e2e.spec.js), added in later runs.
     { name: "mobile", testMatch: /\.e2e\.spec\.js$/, use: { ...MOBILE, ...STABLE } },
     { name: "desktop", testMatch: /\.e2e\.spec\.js$/, use: { ...DESKTOP, ...STABLE } },
+
+    // Cross-browser (WebKit mobile, Firefox desktop). Opt-in with CROSS_BROWSER=1
+    // (npm run test:e2e:cross) after `npx playwright install webkit firefox`.
+    ...(process.env.CROSS_BROWSER
+      ? [
+          {
+            name: "webkit-mobile",
+            testMatch: /\.e2e\.spec\.js$/,
+            use: { ...devices["iPhone 13"], viewport: { width: 375, height: 812 }, browserName: /** @type {const} */ ("webkit"), ...STABLE },
+          },
+          {
+            name: "firefox-desktop",
+            testMatch: /\.e2e\.spec\.js$/,
+            use: { ...devices["Desktop Firefox"], viewport: { width: 1440, height: 900 }, ...STABLE },
+          },
+        ]
+      : []),
   ],
 
   webServer: {
