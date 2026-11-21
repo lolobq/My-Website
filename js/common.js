@@ -90,14 +90,16 @@
   const mailto =
     `mailto:${S.email}` + (S.emailSubject ? `?subject=${encodeURIComponent(S.emailSubject)}` : "");
 
+  // Writing only shows once a post exists.
+  const hasPosts = Array.isArray(window.POSTS) && window.POSTS.length > 0;
   const buttons = [
-    { id: "about", label: "About", href: "about.html" },
     { id: "resume", label: "Resume", href: "resume.html" },
     { id: "projects", label: "Projects", href: "projects.html" },
-    { id: "reflections", label: "Reflections", href: "reflections.html" },
+    { id: "about", label: "About", href: "about.html" },
+    hasPosts && { id: "reflections", label: "Writing", href: "reflections.html" },
     { id: "speaking", label: "Speaking", href: "speaking.html" },
-    { id: "contact", label: "Contact", href: "contact.html" },
-  ];
+    { id: "contact", label: "Let's get coffee", href: "contact.html" },
+  ].filter(Boolean);
 
   const header = document.getElementById("site-header");
   if (!header) return;
@@ -110,13 +112,13 @@
         <span class="name">${S.name}</span>
         <span class="tagline">${S.tagline}</span>
       </a>
-      <nav class="actions" aria-label="Links">
+      <nav class="actions" aria-label="Links" data-count="${buttons.length}">
         ${buttons
           .map(
             (b) =>
               `<a class="nav-link${here === b.href ? " is-current" : ""}" href="${b.href}"${
-                b.external ? ' target="_blank" rel="noopener"' : ""
-              } >${b.label}</a>`
+                here === b.href ? ' aria-current="page"' : ""
+              }${b.external ? ' target="_blank" rel="noopener"' : ""}>${b.label}</a>`
           )
           .join("")}
       </nav>
