@@ -941,6 +941,7 @@
   const stage = document.getElementById("story");
   const quote = document.getElementById("quote");
   const hint = document.getElementById("scroll-hint");
+  const homeActions = document.getElementById("home-actions");
   const spacer = document.getElementById("scroll-space");
   const CARDS = window.CARDS || [];
   const N = CARDS.length;
@@ -950,16 +951,31 @@
 
   spacer.style.height = `${N * 130 + 30}vh`;
 
+  const isExternal = (href) => /^https?:\/\//i.test(href || "");
+  const M = window.Media || { ratio: () => 0.75, attrs: () => "" };
+  const ctaHtml = (cta) => {
+    if (!cta) return "";
+    if (cta === true) return `<a class="btn btn-big" href="${mailto}">Contact me</a>`; // older content shape
+    if (!cta.href || !cta.label) return "";
+    return `<a class="btn btn-big" href="${esc(cta.href)}"${isExternal(cta.href) ? ' target="_blank" rel="noopener"' : ""}>${esc(cta.label)}</a>`;
+  };
+
   const cardEls = CARDS.map((c, i) => {
     const el = document.createElement("article");
-    el.className = `card pixel-box ${i % 2 === 0 ? "side-left" : "side-right"}${c.cta ? " card-cta" : ""}`;
+    el.className = `card pixel-box ${i % 2 === 0 ? "side-left" : "side-right"}${c.cta ? " card-cta" : ""}${(c.images || []).length ? " has-gallery" : ""}`;
     el.setAttribute("aria-hidden", "true");
-    const imgs = (c.images || [])
-      .map((im) =>
-        im.src
-          ? `<img src="${esc(im.src)}" alt="${esc(im.alt || "")}" loading="lazy">`
-          : `<div class="ph" role="img" aria-label="${esc(im.alt || "Photo placeholder")}"><span>${esc(im.alt || "Photo")}</span></div>`
-      )
+    el.inert = true;
+    // Each photo sits in a box with its own fixed aspect ratio; together they fill one row.
+    const pics = c.images || [];
+    let ratioSum = 0;
+    const imgs = pics
+      .map((im) => {
+        const r = im.src ? M.ratio(im.src, [3, 4]) : 0.75;
+        ratioSum += r;
+        return im.src
+          ? `<img src="${esc(im.src)}" alt="${esc(im.alt || "")}" ${M.attrs(im.src, [3, 4])} style="--r:${r}" loading="lazy" decoding="async">`
+          : `<div class="ph" role="img" aria-label="${esc(im.alt || "Photo placeholder")}" style="--r:${r}"><span>${esc(im.alt || "Photo")}</span></div>`;
+      })
       .join("");
     const links = (c.links || [])
       .map((l) => `<a class="btn btn-link" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)} →</a>`)
@@ -968,9 +984,9 @@
       ${c.kicker ? `<p class="kicker">${esc(c.kicker)}</p>` : ""}
       <h2>${esc(c.title)}</h2>
       ${(c.body || []).map((b) => `<p>${esc(b)}</p>`).join("")}
-      ${imgs ? `<div class="gallery">${imgs}</div>` : ""}
+      ${imgs ? `<div class="gallery" style="--rs:${ratioSum.toFixed(4)};--n:${pics.length}">${imgs}</div>` : ""}
       ${links ? `<div class="links">${links}</div>` : ""}
-      ${c.cta ? `<a class="btn btn-big" href="${mailto}">Contact me</a>` : ""}`;
+      ${ctaHtml(c.cta)}`;
     stage.appendChild(el);
     return el;
   });
@@ -978,7 +994,8 @@
   function updateStory(p) {
     const started = window.scrollY > 6;
     quote.classList.toggle("is-gone", started);
-    hint.classList.toggle("is-gone", started);
+    if (homeActions) homeActions.classList.toggle("is-gone", started);
+    else hint.classList.toggle("is-gone", started);
     cardEls.forEach((el, i) => {
       const q = p * (N - 0.2) - i - 0.2; // each card: enter -0.2..0.2, rest, exit 0.8..1.2 (overlaps the next one entering)
       // rises from below the screen, rests beside the sculptor, then exits upward
@@ -992,6 +1009,7 @@
       el.style.opacity = String(clamp(1 - Math.abs(y) / 85, 0, 1));
       const visible = Math.abs(y) < 50;
       el.setAttribute("aria-hidden", visible ? "false" : "true");
+      el.inert = !visible;
       el.classList.toggle("is-active", visible);
       el.style.visibility = Math.abs(y) >= 99 ? "hidden" : "visible";
     });

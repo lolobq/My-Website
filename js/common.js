@@ -139,3 +139,23 @@
   const av = document.getElementById("avatar");
   if (av && window.Sprites) window.Sprites.drawAvatar(av);
 })();
+
+/* Known image sizes, so every <img> gets width/height (no layout shift) and a fixed aspect box. */
+(function () {
+  const SIZES = {
+    "assets/img/surgery.webp": [600, 800],
+    "assets/img/transformation.webp": [800, 800],
+    "assets/img/discgolf-throw.webp": [800, 600],
+    "assets/img/discgolf-podium.webp": [900, 600],
+    "assets/img/speaking-disney.webp": [1200, 900],
+    "assets/img/speaking-room.webp": [1200, 900],
+    "assets/img/youtube.webp": [640, 800],
+    "assets/lauren.jpg": [480, 480],
+  };
+  const size = (src, fallback) => SIZES[src] || fallback || [4, 3];
+  window.Media = {
+    size,
+    ratio: (src, fallback) => { const [w, h] = size(src, fallback); return +(w / h).toFixed(4); },
+    attrs: (src, fallback) => { const [w, h] = size(src, fallback); return `width="${w}" height="${h}"`; },
+  };
+})();
