@@ -78,7 +78,7 @@ test.describe("home: structure", () => {
     await page.goto("/index.html");
     const cards = page.locator(SEL.cards);
     await expect(cards).toHaveCount(EXPECTED_CARDS);
-    await expect(cards.first()).toContainText(/how they got there|journey/i);
+    await expect(cards.first(), "first card is the prologue").toContainText(/prologue|statue|journey/i);
     const sides = await cards.evaluateAll((els) =>
       els.map((e) => (e.classList.contains("side-left") ? "L" : e.classList.contains("side-right") ? "R" : "?"))
     );
@@ -86,7 +86,7 @@ test.describe("home: structure", () => {
     expect(identity.includes("?"), `identity cards have side-left/side-right: ${sides.join("")}`).toBe(false);
     for (let i = 1; i < identity.length; i++) expect(identity[i], `cards alternate sides: ${sides.join("")}`).not.toBe(identity[i - 1]);
     for (let i = 1; i <= 6; i++) await expect(cards.nth(i), `identity card ${i} format`).toContainText(/younger self/i);
-    const cta = cards.last().getByRole("link", { name: /let.s grab coffee/i });
+    const cta = cards.last().locator("a", { hasText: /let.s grab coffee/i }); // CSS locator: card is aria-hidden at scroll 0
     await expect(cta).toHaveAttribute("href", CALENDAR_URL);
   });
 });
@@ -285,7 +285,11 @@ test.describe("home: journeys", () => {
 });
 
 test.describe("home: reduced motion", () => {
-  test.use({ reducedMotion: "reduce" });
+  // Note: test.use({ reducedMotion }) does not take effect with this config's project
+  // `use` (matchMedia stays false), so emulate explicitly before navigation.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+  });
 
   test("quote shows in full immediately and nothing animates", async ({ page }) => {
     await page.goto("/index.html");

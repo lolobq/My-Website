@@ -5,13 +5,14 @@
 const { test, expect } = require("@playwright/test");
 const { CALENDAR_URL, SEL, NAV_ORDER, norm } = require("./helpers");
 
-/** The control that switches to a given view (link to #id, or a control with aria-controls=id). */
-const toggleFor = (page, id) => page.locator(`main a[href$="#${id}"], main [aria-controls="${id}"]`).first();
+/** The control that switches to a given view (data-view button, link to #view, or aria-controls). */
+const toggleFor = (page, view) =>
+  page.locator(`main [data-view="${view}"], main a[href$="#${view}"], main [aria-controls$="${view}"]`).first();
 
 async function expectView(page, shown) {
   const hidden = shown === "dynamic" ? "document" : "dynamic";
-  await expect(page.locator(`#${shown}`), `#${shown} visible`).toBeVisible();
-  await expect(page.locator(`#${hidden}`), `#${hidden} hidden`).toBeHidden();
+  await expect(page.locator(SEL[shown]).first(), `${shown} view visible`).toBeVisible();
+  await expect(page.locator(SEL[hidden]).first(), `${hidden} view hidden`).toBeHidden();
   const state = await toggleFor(page, shown).evaluate((el) =>
     el.getAttribute("aria-pressed") || el.getAttribute("aria-selected") || el.getAttribute("aria-current") || el.getAttribute("aria-expanded")
   );
@@ -39,7 +40,7 @@ test.describe("resume", () => {
     await page.goto("/resume.html#document");
     const text = norm(await page.locator(SEL.document).innerText());
     expect(text.length).toBeGreaterThan(500);
-    await expect(page.locator(`${SEL.document} iframe, ${SEL.document} embed, ${SEL.document} object`), "not a PDF embed").toHaveCount(0);
+    await expect(page.locator(SEL.document).first().locator("iframe, embed, object"), "not a PDF embed").toHaveCount(0);
   });
 
   test("resume.html#document focuses the resume heading", async ({ page }) => {
@@ -78,7 +79,7 @@ test.describe("projects", () => {
     await page.waitForLoadState("networkidle");
     const section = page.locator("section", { has: page.getByRole("heading", { name: /on the workbench/i }) }).last();
     await expect(section).toBeVisible();
-    const cards = section.locator("article");
+    const cards = section.locator(":scope article, :scope > ul > li, :scope > ol > li");
     await expect(cards).toHaveCount(3);
     for (let i = 0; i < 3; i++) {
       const card = cards.nth(i);

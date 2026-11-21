@@ -33,14 +33,14 @@ describe("resume views", () => {
 
   it("defaults to the dynamic view", () => {
     const { doc } = loadPage("resume.html");
-    expect(visible(doc.getElementById("dynamic"))).toBe(true);
-    expect(visible(doc.getElementById("document"))).toBe(false);
+    expect(visible(doc.querySelector("#resume-dynamic, #dynamic"))).toBe(true);
+    expect(visible(doc.querySelector("#resume-document, #document"))).toBe(false);
   });
 
   it("#document shows the document view and focuses its heading", () => {
     const { doc } = loadPage("resume.html", { hash: "#document" });
-    expect(visible(doc.getElementById("document"))).toBe(true);
-    expect(visible(doc.getElementById("dynamic"))).toBe(false);
+    expect(visible(doc.querySelector("#resume-document, #document"))).toBe(true);
+    expect(visible(doc.querySelector("#resume-dynamic, #dynamic"))).toBe(false);
     expect(doc.activeElement && /^H[1-3]$/.test(doc.activeElement.tagName)).toBe(true);
   });
 
@@ -48,8 +48,8 @@ describe("resume views", () => {
     const { win, doc } = loadPage("resume.html", { hash: "#document" });
     win.location.hash = "#dynamic";
     win.dispatchEvent(new win.HashChangeEvent("hashchange"));
-    expect(visible(doc.getElementById("dynamic"))).toBe(true);
-    expect(visible(doc.getElementById("document"))).toBe(false);
+    expect(visible(doc.querySelector("#resume-dynamic, #dynamic"))).toBe(true);
+    expect(visible(doc.querySelector("#resume-document, #document"))).toBe(false);
   });
 
   it("Download PDF links to assets/resume.pdf with download attribute", () => {

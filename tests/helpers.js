@@ -30,8 +30,10 @@ const SEL = {
   cards: "#story .card",
   scrollHint: "#scroll-hint",
   skipToWork: 'a[href$="resume.html#document"]',
-  dynamic: "#dynamic",
-  document: "#document",
+  // The URL hashes are #dynamic / #document; the view elements are #resume-dynamic /
+  // #resume-document (so the browser does not jump-scroll to them).
+  dynamic: "#resume-dynamic, #dynamic",
+  document: "#resume-document, #document",
 };
 
 /**
