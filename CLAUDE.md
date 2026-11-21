@@ -112,7 +112,7 @@ The main session is the **orchestrator**. It plans, delegates, merges, and repor
 
 | Agent | Owns (may edit) | Role |
 |---|---|---|
-| `copywriter` | `content/**` | All words |
+| `copywriter` | `js/**`, `*.html` | All words |
 | `builder` | `*.html`, `css/**`, `js/**`, `assets/**` | Layout, animation, interaction |
 | `qa` | `tests/**`, test configs, `.github/workflows/**` | All testing and CI |
 | `fde-reviewer` | nothing (read-only) | Reviews as target-company hiring managers |
