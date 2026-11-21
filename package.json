@@ -16,7 +16,7 @@
     "test:html": "html-validate \"*.html\"",
     "test:links": "node tests/links.mjs",
     "test:content": "node tests/content-integrity.mjs",
-    "test:lhci": "lhci autorun",
+    "test:lhci": "node tests/require-node.mjs 20 \"Lighthouse CI (Lighthouse 12)\" && lhci autorun",
     "test:unit": "vitest run",
     "test:all": "npm run test:content && npm run test:html && npm run test:unit && npm run test:e2e && npm run test:a11y && npm run test:links && npm run test:lhci",
     "test": "npm run test:all"
