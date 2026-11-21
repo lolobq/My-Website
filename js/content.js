@@ -2,8 +2,6 @@
  * ─────────────────────────────────────────────────────────────
  *  SITE CONTENT — edit this file to update the website.
  *  Plain strings only (the page escapes HTML for you).
- *  Lines marked "DRAFT: Lauren to rewrite" are copy Lauren hasn't approved yet.
- *  Lines marked [CONFIRM: ...] are facts waiting on Lauren.
  * ─────────────────────────────────────────────────────────────
  */
 
@@ -263,11 +261,11 @@ window.ABOUT = {
     "I'm a software engineer and startup co-founder in Charlotte, NC. By day I build production financial systems at Wells Fargo; the rest of the time I'm building an AI platform for anyone to master communication skills.",
     "At Wells Fargo, I helped modernize a 20-year-old reporting system that 7M clients rely on, saving $4M a year. I also led a bank-wide innovation capstone: I pitched senior executives across lines of business for real problems, then ran it for 150+ analysts across 7 U.S. sites. It produced 31 solutions and 5 patent applications. I'm an inventor on a USPTO patent filing, too.",
     "Before that, I spent 2021 to 2024 in UNC Charlotte's TeCSAR Lab on $2M NSF-funded research. I designed and built a first-of-its-kind mobile app for real-time, privacy-preserving AI video analytics for worker safety, tested it on a job site in Uptown Charlotte, and contributed to 2 publications.",
-    "The work I like best: walk into a messy, high-stakes environment, sit with the people who have the problem, and build the fix fast. Then explain it to anyone, from an executive to a room of 300.", // DRAFT: Lauren to rewrite
+    "The work I like best: walk into a messy, high-stakes environment, sit with the people who have the problem, and build the fix fast. Then explain it to anyone, from an executive to a room of 300.",
     "Outside of work, I'm a Collegiate Women's All-American disc golfer, and now I play professional tournaments for money. In January, I tore my labrum and had major hip surgery. Then I committed a year to building muscle. I step on stage for my first bodybuilding contest December 5.",
     "I also run Lauren Bourque Co., coaching and content on leadership, wellness, and mindset (6M+ views, a 20k+ community). And I'm enrolled in UT Austin's M.S. in Artificial Intelligence, currently on leave.",
     "You don't just find yourself. I've never been a fan of that phrase. I believe you create yourself, and the tools to do it already exist within you. You just have to apply them to reveal the gems that are already there. Self-discovery comes down to self-creation more than anything.",
-    "That's how I build software, a body, and a career: with a smile on my face and a chip on my shoulder.", // DRAFT: Lauren to rewrite
+    "That's how I build software, a body, and a career: with a smile on my face and a chip on my shoulder.",
   ],
 };
 
@@ -303,19 +301,13 @@ window.PROJECTS = {
           heading: "What I built",
           body: [
             "I designed the UI/UX in Figma and built the Flutter prototype. Behind it, I built the cloud backend on Firebase and AWS (AppSync, Amplify, DynamoDB, SNS) to move real-time data from the analytics to the app, and used Python and SQL to detect anomalies in that data.",
-            "The key tradeoff: privacy over raw footage. The app shows what's happening on site, not who's doing it.", // DRAFT: Lauren to rewrite
+            "The key tradeoff: privacy over raw footage. The app shows what's happening on site, not who's doing it.",
           ],
         },
         {
           heading: "Result",
           body: [
             "We tested it end to end on a job site in Uptown Charlotte. The research produced 2 publications, including a 2025 journal paper in Internet of Things on its real-world evaluation.",
-          ],
-        },
-        {
-          heading: "What I'd do next",
-          body: [
-            "Spend a week with the safety leads to see which alerts they act on and which they ignore, then measure what matters: how fast an alert reaches a person, and whether incidents go down.", // DRAFT: Lauren to rewrite
           ],
         },
       ],
@@ -333,7 +325,7 @@ window.PROJECTS = {
         {
           heading: "The problem",
           body: [
-            "A big bank has two things in abundance: real business problems and sharp early-career analysts. They rarely meet. Hackathons built on made-up prompts produce demos nobody adopts.", // DRAFT: Lauren to rewrite
+            "A big bank has two things in abundance: real business problems and sharp early-career analysts. They rarely meet. Hackathons built on made-up prompts produce demos nobody adopts.",
           ],
         },
         {
@@ -346,7 +338,7 @@ window.PROJECTS = {
           heading: "What I built",
           body: [
             "The program itself. I pitched senior executives across lines of business to source real problems, then ran the capstone, a FinTech hackathon, across 7 sites. I also led an AI initiative for 60+ employees.",
-            "The key tradeoff: start from problems executives already own instead of open-ended ideas. Fewer flashy pitches, more solutions with someone waiting for them.", // DRAFT: Lauren to rewrite
+            "The key tradeoff: start from problems executives already own instead of open-ended ideas. Fewer flashy pitches, more solutions with someone waiting for them.",
           ],
         },
         {
@@ -358,7 +350,7 @@ window.PROJECTS = {
         {
           heading: "What I'd do next",
           body: [
-            "Track every solution after demo day: shipped, patented, or parked, and why. That's the number that tells you whether an innovation program works.", // DRAFT: Lauren to rewrite
+            "The work didn't stop at demo day. We're tracking the patents through the process, and next summer, intern teams take the 31 solutions and actually build them. That's how innovation sticks at a bank.",
           ],
         },
       ],
@@ -408,11 +400,19 @@ window.SPEAKING = {
       links: [],
     },
     {
+      title: "Career advice for interns",
+      event: "Wells Fargo",
+      date: "",
+      description: ["I presented career advice to a room of Wells Fargo interns."],
+      image: { src: "assets/img/speaking-room.webp", alt: "Lauren presenting career advice to a room of Wells Fargo interns" },
+      links: [],
+    },
+    {
       title: "Innovation panels & podcasts",
       event: "Wells Fargo and beyond",
       date: "",
       description: ["Sharing career advice and lessons on innovation with audiences of 300+."],
-      image: { src: "assets/img/speaking-room.webp", alt: "A full room of attendees facing a projected presentation" }, // [CONFIRM: what is this photo?]
+      image: null,
       links: [],
     },
   ],
