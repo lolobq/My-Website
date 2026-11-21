@@ -19,6 +19,8 @@ Lauren's sign-off before they go live. Lauren's own words are quoted; keep them 
 - Speaker and mentor: innovation panels and podcasts for audiences of 300+.
 - Links: github.com/lolobq · linkedin.com/in/laurenbourque · lolobq47@gmail.com
 - Calendar booking link: https://calendar.app.google/X2TgfwioqwVjECZS6
+- YouTube (philosophy and advice videos): https://www.youtube.com/@lauren_bourque
+- LinkedIn (current): linkedin.com/in/lauren-bourque
 
 ## 2. Lauren's philosophy (the heart of the site)
 
