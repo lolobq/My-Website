@@ -945,3 +945,59 @@ body.page.page-resume {
   .view-toggle .btn { font-size: 12.5px; white-space: nowrap; }
   .resume-actions { gap: 10px; }
 }
+
+/* ───────────── Projects: case studies + On the workbench ───────────── */
+.case-study { padding: 22px 0 26px; border-top: 1px solid rgba(43, 34, 51, 0.25); }
+.case-study:first-of-type { border-top: 0; padding-top: 4px; }
+.case-study h2 { font-family: var(--display); font-size: 34px; line-height: 1.1; margin: 4px 0 8px; }
+.page-main .case-summary { font-size: 20px; line-height: 1.5; margin: 0 0 6px; }
+.case-study h3 { font-family: var(--text); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--moss-dark); margin: 18px 0 4px; }
+.case-study section p { margin: 0 0 10px; }
+.links .btn { min-height: 44px; }
+.workbench { padding-top: 22px; border-top: 1px solid rgba(43, 34, 51, 0.25); }
+.workbench > h2 { font-family: var(--display); font-size: 34px; margin: 0 0 14px; }
+.wb-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; grid-template-columns: 1fr; }
+@media (min-width: 700px) { .wb-grid { grid-template-columns: repeat(3, 1fr); } }
+.wb-card { display: flex; flex-direction: column; background: #fffaf0; border-radius: 7px; overflow: hidden; box-shadow: 0 0 0 1px rgba(43, 34, 51, 0.4); }
+.wb-media { aspect-ratio: 16 / 9; position: relative; overflow: hidden; background: var(--stone); }
+.wb-media > img, .wb-media > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.wb-placeholder {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 0;
+}
+.wb-glyph { width: 36px; height: 36px; }
+.wb-status { font-family: var(--text); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink); }
+.wb-body { padding: 14px 16px 16px; }
+.wb-body h3 { font-family: var(--display); font-size: 24px; line-height: 1.15; margin: 2px 0 6px; }
+.page-main .wb-body p { font-size: 16.5px; line-height: 1.5; margin: 0; }
+.page-main .wb-body .item-meta { margin: 0; }
+
+/* ───────────── Speaking ───────────── */
+.talk { display: grid; gap: 16px; }
+.talk-media { aspect-ratio: 4 / 3; overflow: hidden; border-radius: 5px; background: var(--paper-2); box-shadow: 0 0 0 1px rgba(43, 34, 51, 0.4); }
+.talk-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.talk-body p:last-child { margin-bottom: 0; }
+@media (min-width: 700px) {
+  .talk.has-image { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: start; }
+}
+.topics { margin-top: 26px; }
+.topics h2, .page-main .topics h2 { font-family: var(--display); font-size: 30px; margin: 0 0 10px; }
+.yt-block { margin-top: 28px; padding: 18px; display: grid; gap: 18px; align-items: center; }
+.yt-media { aspect-ratio: 4 / 5; max-width: 260px; overflow: hidden; border-radius: 3px; box-shadow: 0 0 0 1px var(--stone-line); }
+.yt-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.page-main .yt-body p { color: var(--ink); margin: 0 0 6px; }
+.yt-block .btn-big { min-height: 48px; }
+@media (min-width: 600px) { .yt-block { grid-template-columns: 220px 1fr; } }
+
+/* ───────────── Let's get coffee ───────────── */
+.contact-actions .btn-big { min-height: 52px; }
+.page-main .contact-email { font-size: 18px !important; margin: 4px 0 18px; color: var(--ink); }
+.contact-email span { display: block; color: var(--ink-soft); font-size: 16px; }
+.contact-email a { font-size: 20px; text-underline-offset: 4px; overflow-wrap: anywhere; }
+.contact-secondary { display: flex; flex-wrap: wrap; gap: 12px; }
+.contact-secondary .btn { min-height: 44px; }
+@media (max-width: 560px) {
+  .contact-actions .btn-big, .yt-block .btn-big { width: 100%; justify-content: center; white-space: nowrap; letter-spacing: 1.5px; padding: 14px 12px; font-size: 15px; }
+  .case-study h2, .workbench > h2 { font-size: 30px; }
+}

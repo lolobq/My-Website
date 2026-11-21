@@ -11,16 +11,16 @@
     const slug = new URLSearchParams(location.search).get("post");
     const post = posts.find((p) => p.slug === slug);
     if (post) {
-      document.title = `${post.title} · Reflections`;
+      document.title = `${post.title} · Writing`;
       blog.innerHTML = `<article class="post">
-        <a class="btn back" href="reflections.html">← All reflections</a>
+        <a class="btn back" href="reflections.html">← All writing</a>
         <time datetime="${esc(post.date)}">${fmt(post.date)}</time>
         <h1>${esc(post.title)}</h1>
         ${(post.body || []).map((p) => `<p>${esc(p)}</p>`).join("")}
       </article>`;
     } else {
-      blog.innerHTML = `<h1>Reflections</h1>
-        <p class="lede">Notes from the workshop: what I'm learning, building and chiseling away at.</p>
+      blog.innerHTML = `<h1>Writing</h1>
+        ${window.WRITING && window.WRITING.lede ? `<p class="lede">${esc(window.WRITING.lede)}</p>` : ""}
         <ul class="post-list">${posts
           .map((p) => `<li><a href="reflections.html?post=${encodeURIComponent(p.slug)}">
             <time datetime="${esc(p.date)}">${fmt(p.date)}</time>
@@ -162,29 +162,95 @@
   const about = document.getElementById("about");
   if (about) {
     const A = window.ABOUT || {};
-    about.innerHTML = `<div class="about-head">${S.photo ? `<img class="about-photo" src="${esc(S.photo)}" alt="Photo of ${esc(S.name)}">` : ""}
+    about.innerHTML = `<div class="about-head">${S.photo ? `<img class="about-photo" src="${esc(S.photo)}" alt="Photo of ${esc(S.name)}" ${(window.Media && window.Media.attrs(S.photo)) || ""}>` : ""}
       <div><h1>${esc(A.title || "About")}</h1><p class="lede">${esc(S.tagline)}</p></div></div>${paras(A.body)}`;
   }
 
-  const listPage = (el, title, lede, items, meta) => {
-    el.innerHTML = `<h1>${title}</h1><p class="lede">${lede}</p><ul class="item-list">${items
-      .map((it) => `<li><p class="item-meta">${esc(meta(it))}</p><h2>${esc(it.title)}</h2>${paras(it.description)}${links(it.links)}</li>`)
-      .join("")}</ul>`;
-  };
-  const projects = document.getElementById("projects");
-  if (projects) listPage(projects, "Projects", "Things I've built and am building.", window.PROJECTS || [], (it) => it.tag || "");
-  const speaking = document.getElementById("speaking");
-  if (speaking) listPage(speaking, "Speaking", "Panels, podcasts and talks.", window.TALKS || [], (it) => [it.event, it.date].filter(Boolean).join(" · "));
+  const M = window.Media || { attrs: () => "" };
+  const lede = (t) => (t ? `<p class="lede">${esc(t)}</p>` : "");
+  const img = (im, cls) =>
+    im && im.src ? `<img class="${cls}" src="${esc(im.src)}" alt="${esc(im.alt || "")}" ${M.attrs(im.src)} loading="lazy" decoding="async">` : "";
 
+  // Projects: full case studies, then the "On the workbench" grid.
+  const projects = document.getElementById("projects");
+  if (projects) {
+    const P = window.PROJECTS && !Array.isArray(window.PROJECTS) ? window.PROJECTS : {};
+    const cases = P.caseStudies || [];
+    const bench = P.workbench || [];
+    // media: null → placeholder; { type: "image" | "video", src, alt, poster } → the demo.
+    const media = (w) => {
+      const m = w.media;
+      if (m && m.src && m.type === "video")
+        return `<video class="wb-video" controls preload="none" playsinline${m.poster ? ` poster="${esc(m.poster)}"` : ""}${m.alt ? ` aria-label="${esc(m.alt)}"` : ""}><source src="${esc(m.src)}"></video>`;
+      if (m && m.src) return img(m, "wb-img");
+      return `<div class="wb-placeholder stone" role="img" aria-label="${esc([w.title, w.status].filter(Boolean).join(": "))}">
+          <svg class="wb-glyph" viewBox="0 0 12 12" aria-hidden="true" shape-rendering="crispEdges"><path fill="#3a332c" d="M3 1h6v1h1v10H2V2h1z"/><path fill="#bdb5a6" d="M3 2h6v9H3z"/><path fill="#e2dccf" d="M3 2h6v1H3z"/><path fill="#d3ccbf" d="M3 3h1v8H3z"/><path fill="#958d7f" d="M8 3h1v8H8z"/><path fill="#a9a193" d="M5 5h1v1H5zM6 8h1v1H6z"/></svg>
+          ${w.status ? `<span class="wb-status">${esc(w.status)}</span>` : ""}
+        </div>`;
+    };
+    projects.innerHTML = `<h1>${esc(P.title || "Projects")}</h1>${lede(P.lede)}
+      ${cases.map((c) => `<article class="case-study"${c.id ? ` id="${esc(c.id)}"` : ""}>
+          ${c.tag ? `<p class="item-meta">${esc(c.tag)}</p>` : ""}
+          <h2>${esc(c.title)}</h2>
+          ${c.summary ? `<p class="case-summary">${esc(c.summary)}</p>` : ""}
+          ${(c.sections || []).map((s) => `<section>${s.heading ? `<h3>${esc(s.heading)}</h3>` : ""}${paras(s.body)}</section>`).join("")}
+          ${links(c.links)}
+        </article>`).join("")}
+      ${bench.length ? `<section class="workbench" aria-labelledby="workbench-h">
+          <h2 id="workbench-h">On the workbench</h2>
+          <ul class="wb-grid">${bench.map((w) => `<li class="wb-card">
+              <div class="wb-media">${media(w)}</div>
+              <div class="wb-body">
+                ${w.status && w.media && w.media.src ? `<p class="item-meta">${esc(w.status)}</p>` : ""}
+                <h3>${esc(w.title)}</h3>
+                ${w.description ? `<p>${esc(w.description)}</p>` : ""}
+                ${links(w.links)}
+              </div>
+            </li>`).join("")}</ul>
+        </section>` : ""}`;
+  }
+
+  // Speaking: talks with photos, topics, and the YouTube channel.
+  const speaking = document.getElementById("speaking");
+  if (speaking) {
+    const SP = window.SPEAKING || {};
+    const talks = SP.talks || window.TALKS || [];
+    const topics = SP.topics || [];
+    const yt = SP.youtube;
+    const ytHref = (yt && yt.href) || S.youtube;
+    speaking.innerHTML = `<h1>${esc(SP.title || "Speaking")}</h1>${lede(SP.lede)}
+      <ul class="item-list talk-list">${talks.map((t) => `<li class="talk${t.image && t.image.src ? " has-image" : ""}">
+          ${t.image && t.image.src ? `<div class="talk-media">${img(t.image, "talk-img")}</div>` : ""}
+          <div class="talk-body">
+            ${t.event || t.date ? `<p class="item-meta">${esc([t.event, t.date].filter(Boolean).join(" · "))}</p>` : ""}
+            <h2>${esc(t.title)}</h2>
+            ${paras(t.description)}
+            ${links(t.links)}
+          </div>
+        </li>`).join("")}</ul>
+      ${topics.length ? `<section class="topics" aria-labelledby="topics-h"><h2 id="topics-h">Topics</h2><ul class="chips">${topics.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></section>` : ""}
+      ${yt && ytHref ? `<section class="yt-block stone" aria-label="YouTube">
+          ${yt.image && yt.image.src ? `<div class="yt-media">${img(yt.image, "yt-img")}</div>` : ""}
+          <div class="yt-body">
+            ${yt.description ? `<p>${esc(yt.description)}</p>` : ""}
+            <a class="btn btn-big" href="${esc(ytHref)}" target="_blank" rel="noopener">${esc(yt.label || "YouTube")} →</a>
+          </div>
+        </section>` : ""}`;
+  }
+
+  // Let's get coffee: booking link first, email beneath, no form.
   const contact = document.getElementById("contact");
   if (contact) {
-    contact.innerHTML = `<h1>Let's sculpt together.</h1>
-      <p class="lede">The best way to reach me is email. I'm also on LinkedIn and GitHub.</p>
-      <div class="contact-actions">
-        <a class="btn btn-big" href="${mailto}">Email me</a>
-        <a class="btn" href="${esc(S.linkedin)}" target="_blank" rel="noopener">LinkedIn →</a>
-        <a class="btn" href="${esc(S.github)}" target="_blank" rel="noopener">GitHub →</a>
-      </div>
-      <p class="contact-email">${esc(S.email)}</p>`;
+    const C = window.CONTACT || {};
+    const primary = S.calendar
+      ? `<a class="btn btn-big" href="${esc(S.calendar)}" target="_blank" rel="noopener">${esc(C.calendarLabel || "Google Calendar")} →</a>`
+      : `<a class="btn btn-big" href="${mailto}">${esc(S.email)}</a>`;
+    contact.innerHTML = `<h1>${esc(C.title || "Let's get coffee")}</h1>${lede(C.lede)}
+      <div class="contact-actions">${primary}</div>
+      <p class="contact-email">${C.emailLabel ? `<span>${esc(C.emailLabel)}</span> ` : ""}<a href="${mailto}">${esc(S.email)}</a></p>
+      <div class="contact-secondary">
+        ${S.linkedin ? `<a class="btn" href="${esc(S.linkedin)}" target="_blank" rel="noopener">LinkedIn →</a>` : ""}
+        ${S.github ? `<a class="btn" href="${esc(S.github)}" target="_blank" rel="noopener">GitHub →</a>` : ""}
+      </div>`;
   }
 })();
