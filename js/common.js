@@ -107,7 +107,7 @@
   const here = location.pathname.split("/").pop() || "index.html";
 
   header.innerHTML = `
-    <div class="bar">
+    <div class="bar stone">
       <a class="who" href="index.html">
         <span class="name">${S.name}</span>
         <span class="tagline">${S.tagline}</span>

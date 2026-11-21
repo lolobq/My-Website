@@ -674,3 +674,52 @@ body.page { background: linear-gradient(180deg, #bcdcef 0%, #e3eff0 45%, #efe9da
 @media (max-width: 380px) {
   #site-header .actions[data-count="6"] .nav-link { font-size: 12.5px; }
 }
+
+/* ───────────── Stone slab surface (colors from the slab in scene.js) ─────────────
+   Reusable: add class="stone" (and, for buttons, "btn stone"). Text on stone uses
+   --ink, --stone-moss or --stone-clay, which stay ≥4.5:1 even over the darkest grain. */
+:root {
+  --stone: #bdb5a6;
+  --stone-dark: #a9a193;
+  --stone-light: #d3ccbf;
+  --stone-top: #e2dccf;
+  --stone-shadow: #958d7f;
+  --stone-line: #3a332c;
+  --stone-moss: #263d1c;
+  --stone-clay: #5e2a14;
+  --stone-grain: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path fill='%23a9a193' d='M3 0h1v1h-1zM6 0h1v1h-1zM8 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM14 0h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 3h1v1h-1zM8 3h1v1h-1zM6 4h1v1h-1zM14 4h1v1h-1zM1 5h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM8 5h1v1h-1zM10 6h1v1h-1zM3 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM13 7h1v1h-1zM1 8h1v1h-1zM2 8h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM3 9h1v1h-1zM8 9h1v1h-1zM13 9h1v1h-1zM3 11h1v1h-1zM4 11h1v1h-1zM8 12h1v1h-1zM8 13h1v1h-1zM3 14h1v1h-1zM13 15h1v1h-1z'/><path fill='%23d3ccbf' d='M1 1h1v1h-1zM4 1h1v1h-1zM2 3h1v1h-1zM3 4h1v1h-1zM9 4h1v1h-1zM2 6h1v1h-1zM14 6h1v1h-1zM15 8h1v1h-1zM9 9h1v1h-1zM15 9h1v1h-1zM11 10h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM11 11h1v1h-1zM12 11h1v1h-1zM2 13h1v1h-1zM5 13h1v1h-1zM14 13h1v1h-1zM4 14h1v1h-1zM7 14h1v1h-1zM3 15h1v1h-1zM9 15h1v1h-1z'/></svg>");
+  --stone-edge: inset 0 3px 0 var(--stone-top), inset 3px 0 0 var(--stone-light), inset -3px 0 0 var(--stone-shadow), inset 0 -3px 0 var(--stone-shadow), 0 0 0 1px var(--stone-line);
+}
+.stone {
+  color: var(--ink);
+  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  box-shadow: var(--stone-edge);
+  border-radius: 3px;
+}
+.stone a:not(.btn):hover { color: var(--stone-clay); }
+
+/* Top bar */
+#site-header .bar.stone, #site-header .bar.stone[class] {
+  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  box-shadow: inset 0 3px 0 var(--stone-top), inset 0 -3px 0 var(--stone-shadow), 0 1px 0 var(--stone-line), 0 6px 20px rgba(43, 34, 51, 0.18);
+  border-radius: 0;
+}
+#site-header .bar.stone .tagline { color: var(--stone-moss); }
+#site-header .bar.stone .nav-link:hover { color: var(--stone-clay); }
+
+/* Quote box */
+#quote.stone { background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone); box-shadow: var(--stone-edge), 0 8px 28px rgba(43, 34, 51, 0.2); border-radius: 3px; }
+#quote.stone figcaption { color: var(--stone-moss); }
+
+/* Stone buttons */
+.btn.stone, #dock .btn.stone {
+  color: var(--ink);
+  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  border: 0;
+  border-radius: 3px;
+  box-shadow: var(--stone-edge), 0 4px 16px rgba(43, 34, 51, 0.18);
+  transition: background-color 200ms ease, transform 120ms ease;
+}
+.btn.stone:hover, #dock .btn.stone:hover { color: var(--ink); background-color: var(--stone-light); background-image: var(--stone-grain); }
+.btn.stone:active, #dock .btn.stone:active { box-shadow: inset 0 3px 0 var(--stone-shadow), inset 3px 0 0 var(--stone-shadow), inset -3px 0 0 var(--stone-light), inset 0 -3px 0 var(--stone-top), 0 0 0 1px var(--stone-line); }
+.btn.stone:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
