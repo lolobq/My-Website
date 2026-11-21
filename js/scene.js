@@ -138,12 +138,25 @@
   }
   buildSlab();
 
+  // Viewport heights: large (URL bar hidden) and small (URL bar shown). Same as innerHeight on desktop.
+  function probeHeight(unit) {
+    if (!(window.CSS && CSS.supports("height", `100${unit}`))) return window.innerHeight;
+    const d = document.createElement("div");
+    d.style.cssText = `position:fixed;top:0;left:0;width:0;height:100${unit};visibility:hidden;pointer-events:none`;
+    document.body.appendChild(d);
+    const h = d.getBoundingClientRect().height;
+    d.remove();
+    return h || window.innerHeight;
+  }
+  const coverHeight = () => Math.max(window.innerHeight, probeHeight("lvh"));
+  const smallHeight = () => Math.min(window.innerHeight, probeHeight("svh"));
+
   function layout() {
     const headerH = header.getBoundingClientRect().bottom;
     const sceneH = window.innerHeight - headerH;
     scale = clamp(Math.floor(sceneH / 150), 2, 6);
     W = Math.ceil(window.innerWidth / scale);
-    H = Math.ceil(window.innerHeight / scale);
+    H = Math.ceil(coverHeight() / scale); // tall enough for the collapsed-URL-bar viewport too
     canvas.width = W; canvas.height = H;
     canvas.style.width = W * scale + "px";
     canvas.style.height = H * scale + "px";
@@ -1077,7 +1090,22 @@
   }
 
   window.addEventListener("scroll", readScroll, { passive: true });
-  window.addEventListener("resize", () => { layout(); readScroll(); });
+  // Phones fire resize whenever the URL bar shows or hides. The canvas is already sized to the
+  // large viewport, so only rebuild when the width changes or the height changes beyond that.
+  let lastW = window.innerWidth, lastH = window.innerHeight, resizeTimer = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const w = window.innerWidth, h = window.innerHeight;
+      const bar = Math.max(0, coverHeight() - smallHeight());
+      const covered = h <= canvas.height * scale;
+      if (w !== lastW || !covered || Math.abs(h - lastH) > bar + 24) {
+        lastW = w; lastH = h;
+        layout();
+      }
+      readScroll();
+    }, 150);
+  });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layout(); readScroll(); });
   layout();
   readScroll();
