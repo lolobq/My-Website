@@ -1001,3 +1001,20 @@ body.page.page-resume {
   .contact-actions .btn-big, .yt-block .btn-big { width: 100%; justify-content: center; white-space: nowrap; letter-spacing: 1.5px; padding: 14px 12px; font-size: 15px; }
   .case-study h2, .workbench > h2 { font-size: 30px; }
 }
+
+/* ───────────── Quote typewriter: final layout from first paint ───────────── */
+.q-text::after { content: none; }
+.js #quote:not(.is-typed) .q-rest { visibility: hidden; animation: q-failsafe 0s 5s forwards; }
+@keyframes q-failsafe { to { visibility: visible; } }
+/* zero-advance cursor, so it never changes how the line wraps */
+.q-typed::after {
+  content: "";
+  display: inline-block;
+  width: 0; height: 0.9em;
+  margin-right: 0;
+  vertical-align: -0.1em;
+  box-shadow: 0.08em 0 0 0.06em var(--clay);
+  animation: blink 900ms steps(1) infinite;
+}
+#quote.is-typed .q-typed::after { display: none; }
+@media (prefers-reduced-motion: reduce) { .q-typed::after { animation: none; } }

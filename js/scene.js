@@ -1034,18 +1034,46 @@
   setTimeLabel();
 
   // quote typewriter
+  // The full quote is in the markup from first paint (final layout, no shift); the untyped
+  // remainder is only visibility:hidden, so typing never moves anything.
   function typeQuote() {
     const textEl = quote.querySelector(".q-text");
     const full = textEl.dataset.text;
-    if (reduceMotion) { textEl.textContent = full; quote.classList.add("is-typed"); return; }
-    let i = 0;
-    const step = () => {
-      i++;
-      textEl.textContent = full.slice(0, i);
-      if (i < full.length) setTimeout(step, full[i - 1] === "," ? 220 : 34);
-      else quote.classList.add("is-typed");
+    let typed = textEl.querySelector(".q-typed");
+    let rest = textEl.querySelector(".q-rest");
+    if (!typed || !rest) {
+      textEl.innerHTML = '<span class="q-typed"></span><span class="q-rest"></span>';
+      typed = textEl.querySelector(".q-typed");
+      rest = textEl.querySelector(".q-rest");
+    }
+    const DELAY = 120, DURATION = 1700;
+    let shown = -1, start = 0, raf = 0, done = false;
+    const render = (n) => {
+      if (n === shown) return;
+      shown = n;
+      typed.textContent = full.slice(0, n);
+      rest.textContent = full.slice(n);
     };
-    setTimeout(step, 500);
+    const finish = () => {
+      if (done) return;
+      done = true;
+      cancelAnimationFrame(raf);
+      render(full.length);
+      quote.classList.add("is-typed");
+      ["scroll", "keydown", "pointerdown", "wheel", "touchstart"].forEach((ev) => window.removeEventListener(ev, finish));
+    };
+    if (reduceMotion) { finish(); return; }
+    render(0);
+    ["scroll", "keydown", "pointerdown", "wheel", "touchstart"].forEach((ev) => window.addEventListener(ev, finish, { passive: true }));
+    const tick = (now) => {
+      if (done) return;
+      if (!start) start = now;
+      const t = clamp((now - start - DELAY) / DURATION, 0, 1);
+      render(Math.round(t * full.length));
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else finish();
+    };
+    raf = requestAnimationFrame(tick);
   }
 
   window.addEventListener("scroll", readScroll, { passive: true });
