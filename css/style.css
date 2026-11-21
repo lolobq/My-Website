@@ -1018,3 +1018,8 @@ body.page.page-resume {
 }
 #quote.is-typed .q-typed::after { display: none; }
 @media (prefers-reduced-motion: reduce) { .q-typed::after { animation: none; } }
+
+/* Time toggle meets the 44px tap target everywhere */
+#dock .btn { min-width: 44px; min-height: 44px; justify-content: center; }
+/* No-JS fallbacks */
+#site-header noscript { display: contents; }
