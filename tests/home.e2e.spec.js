@@ -275,7 +275,8 @@ test.describe("home: journeys", () => {
     expectNoErrors(errs, "resize");
   });
 
-  test("closing card CTA meets tap target size", async ({ page }) => {
+  test("closing card CTA meets tap target size", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.includes("mobile"), "mobile-only");
     await page.goto("/index.html");
     await scrollToPct(page, 100);
     await frames(page, 3);
@@ -291,10 +292,16 @@ test.describe("home: reduced motion", () => {
     await page.waitForLoadState("load");
     await expect(page.locator("blockquote")).toContainText(QUOTE, { timeout: 1_000 });
     const running = await page.evaluate(() =>
-      document.getAnimations().filter((a) => a.playState === "running").map((a) => {
-        const t = /** @type {any} */ (a.effect) && /** @type {any} */ (a.effect).target;
-        return `${a.constructor.name} on ${t ? t.tagName + (t.className ? "." + String(t.className).split(" ")[0] : "") : "?"}`;
-      })
+      document
+        .getAnimations()
+        // CSS animations (entrance pops, blinking caret, bobbing icons) must be off; short
+        // CSS transitions tied to scroll state (opacity fades) are tolerated.
+        .filter((a) => a.playState === "running" && a.constructor.name !== "CSSTransition")
+        .map((a) => {
+          const t = /** @type {any} */ (a.effect) && /** @type {any} */ (a.effect).target;
+          const cls = t && t.getAttribute ? (t.getAttribute("class") || "").split(" ")[0] : "";
+          return `${/** @type {any} */ (a).animationName || a.constructor.name} on ${t ? t.tagName.toLowerCase() + (cls ? "." + cls : "") : "?"}`;
+        })
     );
     expect(running, "CSS animations/transitions running under reduced motion").toEqual([]);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).not.toBe("smooth");

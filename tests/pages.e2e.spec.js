@@ -114,10 +114,10 @@ test.describe("journey 3: keyboard only", () => {
   test.skip(({ browserName }) => browserName === "webkit", "WebKit does not tab to links by default");
 
   /** Press Tab up to `max` times, returning a descriptor of each focused element. */
-  async function tabWalk(page, max = 40) {
+  async function tabWalk(page, max = 40, key = "Tab") {
     const seen = [];
     for (let i = 0; i < max; i++) {
-      await page.keyboard.press("Tab");
+      await page.keyboard.press(key);
       const d = await page.evaluate(() => {
         const a = /** @type {HTMLElement} */ (document.activeElement);
         if (!a || a === document.body) return null;
@@ -160,8 +160,8 @@ test.describe("journey 3: keyboard only", () => {
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/resume\.html#document$/);
 
-    // Every nav item is reachable from the resume page; follow Let's get coffee.
-    const seen = await tabWalk(page, 30);
+    // Focus starts on the resume heading (below the header), so walk backwards to the nav.
+    const seen = await tabWalk(page, 30, "Shift+Tab");
     for (const label of NAV_ORDER) expect(seen.map((s) => s.name), `Tab reaches "${label}" on resume`).toContain(label);
     await page.locator(SEL.nav).first().getByRole("link", { name: /let.s get coffee/i }).focus();
     await page.keyboard.press("Enter");
