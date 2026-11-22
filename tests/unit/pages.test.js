@@ -1,6 +1,11 @@
 // Unit tests for js/common.js and js/pages.js, run against the real pages inside jsdom.
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadPage } from "./load-page.js";
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const norm = (s) => String(s || "").replace(/[‘’]/g, "'").replace(/\s+/g, " ").trim();
 const navLabels = (doc) =>
@@ -138,6 +143,63 @@ describe("resume (just the PDF)", () => {
   it("does not steal focus without #document", () => {
     const { doc } = loadPage("resume.html");
     expect(doc.activeElement && doc.activeElement.id).not.toBe("resume-heading");
+  });
+
+  describe("phone highlight slabs", () => {
+    it("Experience, Skills, Publications, Education groups after the Open/Download slab; no summary, no honors", () => {
+      const { win, doc } = loadPage("resume.html");
+      const R = win.RESUME;
+      const slabs = doc.querySelector("#document .resume-slabs");
+      expect(slabs).not.toBeNull();
+      expect(slabs.previousElementSibling.classList.contains("resume-fallback")).toBe(true);
+      const groups = [...slabs.querySelectorAll(":scope > section.resume-group")];
+      expect(groups.map((g) => norm(g.querySelector("h2.resume-kicker").textContent))).toEqual(["Experience", "Skills", "Publications", "Education"]);
+      for (const g of groups) expect(doc.getElementById(g.getAttribute("aria-labelledby"))).toBe(g.querySelector("h2"));
+      expect(groups[0].querySelectorAll(".resume-slab.stone").length).toBe(R.experience.length);
+      expect(groups[3].querySelectorAll(".resume-slab.stone").length).toBe(R.education.length);
+      expect(groups[1].querySelectorAll(".doc-skills li").length).toBe(R.skills.length);
+      expect(groups[2].querySelectorAll("li").length).toBe(R.publications.length);
+      const text = norm(slabs.textContent);
+      expect(text).not.toMatch(/disc\s*golf/i);
+      for (const h of R.honors) expect(text).not.toContain(norm(h));
+      expect(text).not.toContain(norm(R.summary).slice(0, 60));
+      expect(text).not.toMatch(/\b(honors|summary)\b/i);
+      // One source: the slab role text equals the text version's role text.
+      const docRoles = [...doc.querySelectorAll("#resume-document section")].find((s) => s.querySelector("h2").textContent === "Experience").querySelectorAll("article");
+      [...groups[0].querySelectorAll("article")].forEach((a, i) => expect(norm(a.textContent)).toBe(norm(docRoles[i].textContent)));
+    });
+
+    it("text version is aria-hidden while the slabs show; exposed with the PDF frame; toggles with the media query", () => {
+      const { doc, setMedia } = loadPage("resume.html", { media: () => false, pdfViewer: true });
+      const art = doc.querySelector("#resume-document");
+      expect(art.getAttribute("aria-hidden")).toBe("true");
+      setMedia(WIDE);
+      expect(doc.querySelector("#document iframe")).not.toBeNull();
+      expect(art.hasAttribute("aria-hidden")).toBe(false);
+      setMedia(() => false);
+      expect(art.getAttribute("aria-hidden")).toBe("true");
+    });
+
+    it("text version is exposed again while printing", () => {
+      const { doc, setMedia } = loadPage("resume.html", { media: () => false });
+      const art = doc.querySelector("#resume-document");
+      expect(art.getAttribute("aria-hidden")).toBe("true");
+      setMedia((q) => q === "print");
+      expect(art.hasAttribute("aria-hidden")).toBe(false);
+      setMedia(() => false);
+      expect(art.getAttribute("aria-hidden")).toBe("true");
+    });
+
+    it("desktop with a viewer: aria-hidden never set", () => {
+      const { doc } = loadPage("resume.html", { media: WIDE, pdfViewer: true });
+      expect(doc.querySelector("#resume-document").hasAttribute("aria-hidden")).toBe(false);
+    });
+
+    it("no slabs (empty resume content): text version stays exposed", () => {
+      const { doc } = loadPage("resume.html", { before: (w) => { w.RESUME = { title: "Resume" }; } });
+      expect(doc.querySelector(".resume-slabs")).toBeNull();
+      expect(doc.querySelector("#resume-document").hasAttribute("aria-hidden")).toBe(false);
+    });
   });
 
   it("print events do not throw or change the DOM (CSS un-hides the text version)", () => {
@@ -382,6 +444,173 @@ describe("projects", () => {
     win.history.replaceState(null, "", "projects.html");
     win.dispatchEvent(new win.PopStateEvent("popstate"));
     expect(doc.querySelectorAll("dialog[open]").length).toBe(0);
+  });
+
+  describe("queue", () => {
+    const st = (doc) => {
+      const ts = [...doc.querySelectorAll(".tiles > li.tile")];
+      return {
+        at: ts.findIndex((t) => t.classList.contains("is-current")),
+        currents: ts.filter((t) => t.classList.contains("is-current")).length,
+        inert: ts.map((t) => t.hasAttribute("inert")),
+        cssAt: doc.querySelector(".tiles").style.getPropertyValue("--at"),
+        dots: [...doc.querySelectorAll(".queue-dot")].map((d) => d.getAttribute("aria-current")),
+        prev: doc.querySelector('.queue-arrow[data-step="-1"]').getAttribute("aria-disabled"),
+        next: doc.querySelector('.queue-arrow[data-step="1"]').getAttribute("aria-disabled"),
+        count: doc.querySelector(".queue-count").textContent,
+        status: doc.querySelector(".queue-status").textContent,
+      };
+    };
+    const expectAt = (doc, i, status) => {
+      const s = st(doc);
+      expect(s.at).toBe(i);
+      expect(s.currents).toBe(1);
+      expect(s.inert).toEqual(TILE_KEYS.map((_, k) => k !== i));
+      expect(s.cssAt).toBe(String(i));
+      expect(s.dots).toEqual(TILE_KEYS.map((_, k) => (k === i ? "true" : null)));
+      expect(s.prev).toBe(i === 0 ? "true" : null);
+      expect(s.next).toBe(i === TILE_KEYS.length - 1 ? "true" : null);
+      expect(s.count).toBe(`${i + 1} of ${TILE_KEYS.length}`);
+      if (status !== undefined) expect(s.status).toBe(status);
+    };
+    const label = (doc, i) => doc.querySelectorAll(".queue-dot")[i].getAttribute("aria-label");
+    const wheel = (win, init) => win.dispatchEvent(new win.WheelEvent("wheel", { deltaMode: 0, ...init }));
+    const touch = (win, el, type, x, y) => {
+      const e = new win.Event(type, { bubbles: true });
+      const pt = [{ clientX: x, clientY: y }];
+      Object.defineProperty(e, type === "touchend" ? "changedTouches" : "touches", { value: pt });
+      el.dispatchEvent(e);
+    };
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    it("starts at tile 0: carousel region, polite silent status, neighbours inert, Previous disabled", () => {
+      const { doc } = loadPage("projects.html");
+      const q = doc.querySelector("section.queue");
+      expect(q.getAttribute("role")).toBe("region");
+      expect(q.getAttribute("aria-roledescription")).toBe("carousel");
+      expect(q.getAttribute("aria-label")).toBe("Projects");
+      const status = q.querySelector(".queue-status");
+      expect(status.getAttribute("aria-live")).toBe("polite");
+      expect(status.classList.contains("sr-only")).toBe(true);
+      expect(q.querySelector(".queue-count").getAttribute("aria-hidden")).toBe("true");
+      expectAt(doc, 0, "");
+      [...q.querySelectorAll(".queue-dot")].forEach((d, i) => expect(d.getAttribute("aria-label")).toMatch(new RegExp(`^Project ${i + 1} of 4: \\S`)));
+    });
+
+    it("prev/next buttons and dots move it and announce; disabled arrows do nothing", () => {
+      const { doc } = loadPage("projects.html");
+      const [prev, next] = doc.querySelectorAll(".queue-arrow");
+      prev.click();
+      expectAt(doc, 0, "");
+      for (let i = 1; i < 4; i++) { next.click(); expectAt(doc, i, label(doc, i)); }
+      next.click();
+      expectAt(doc, 3);
+      doc.querySelectorAll(".queue-dot")[1].click();
+      expectAt(doc, 1, label(doc, 1));
+      prev.click();
+      expectAt(doc, 0, label(doc, 0));
+    });
+
+    it("keys on the queue: ArrowRight/Left, PageDown/Up, End/Home; modifiers ignored; focus follows", () => {
+      const { win, doc } = loadPage("projects.html");
+      const q = doc.querySelector(".queue");
+      doc.querySelector(".tile.is-current .tile-link").focus();
+      const key = (k, o = {}) => doc.activeElement.dispatchEvent(new win.KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true, ...o }));
+      for (const [k, i] of [["ArrowRight", 1], ["PageDown", 2], ["End", 3], ["PageUp", 2], ["ArrowLeft", 1], ["Home", 0]]) {
+        key(k);
+        expectAt(doc, i, label(doc, i));
+        expect(doc.querySelectorAll(".tiles > li.tile")[i].contains(doc.activeElement), `${k}: focus on the centred tile`).toBe(true);
+      }
+      key("ArrowRight", { ctrlKey: true });
+      key("ArrowRight", { altKey: true });
+      expectAt(doc, 0);
+      const ev = new win.KeyboardEvent("keydown", { key: "End", bubbles: true, cancelable: true });
+      q.dispatchEvent(ev);
+      expect(ev.defaultPrevented, "handled keys don't scroll the page").toBe(true);
+      const other = new win.KeyboardEvent("keydown", { key: "a", bubbles: true, cancelable: true });
+      q.dispatchEvent(other);
+      expect(other.defaultPrevented).toBe(false);
+    });
+
+    it("wheel: one gesture = one tile, down = next; new gesture after quiet; ctrl+wheel (zoom) ignored", async () => {
+      const { win, doc } = loadPage("projects.html");
+      for (let k = 0; k < 10; k++) wheel(win, { deltaY: 30 });
+      expectAt(doc, 1, label(doc, 1));
+      await sleep(260);
+      for (let k = 0; k < 6; k++) wheel(win, { deltaY: -60 });
+      expectAt(doc, 0);
+      await sleep(260);
+      wheel(win, { deltaX: 50, deltaY: 10 }); // sideways wins
+      expectAt(doc, 1);
+      await sleep(260);
+      wheel(win, { deltaY: 3, deltaMode: 1 }); // 3 lines = 48px
+      expectAt(doc, 2);
+      await sleep(260);
+      wheel(win, { deltaY: 200, ctrlKey: true });
+      expectAt(doc, 2);
+      wheel(win, { deltaY: 20 });
+      wheel(win, { deltaY: -20 }); // direction change resets the travel
+      expectAt(doc, 2);
+    });
+
+    it("wheel and swipe are ignored while a dialog is open", async () => {
+      const { win, doc } = loadPage("projects.html");
+      doc.querySelector('.tile.is-current a[data-panel]').click();
+      expect(doc.querySelector("dialog[open]")).not.toBeNull();
+      wheel(win, { deltaY: 100 });
+      const q = doc.querySelector(".queue");
+      touch(win, q, "touchstart", 200, 200);
+      touch(win, q, "touchend", 50, 200);
+      expectAt(doc, 0);
+    });
+
+    it("swipe: left = next, right = previous, up = next; under 40px nothing", () => {
+      const { win, doc } = loadPage("projects.html");
+      const q = doc.querySelector(".queue");
+      const swipe = (dx, dy) => { touch(win, q, "touchstart", 200, 300); touch(win, q, "touchend", 200 + dx, 300 + dy); };
+      swipe(-100, 5);
+      expectAt(doc, 1, label(doc, 1));
+      swipe(0, -100);
+      expectAt(doc, 2);
+      swipe(100, 0);
+      expectAt(doc, 1);
+      swipe(30, 0);
+      expectAt(doc, 1);
+    });
+
+    it("#hash deep link moves the queue quietly and instantly; it opens the dialog", () => {
+      const { win, doc } = loadPage("projects.html", { hash: "#stealth-ai-startup" });
+      expectAt(doc, 2, "");
+      expect(doc.getElementById("stealth-ai-startup").open).toBe(true);
+      expect(doc.querySelector(".tiles").classList.contains("no-slide"), "no-slide removed after the jump").toBe(false);
+      win.location.hash = "#smartcity";
+      win.dispatchEvent(new win.HashChangeEvent("hashchange"));
+      expectAt(doc, 0, "");
+    });
+
+    it("an Also exploring deep link opens its panel and leaves the queue where it is", () => {
+      const { doc } = loadPage("projects.html");
+      doc.querySelectorAll(".queue-arrow")[1].click();
+      doc.querySelector(".also a[data-panel]").click();
+      expect(doc.querySelector("dialog[open]")).not.toBeNull();
+      expectAt(doc, 1);
+    });
+
+    it("each tile has its TILE_ART image (decorative, sized); the stealth art is a local generic SVG", () => {
+      const { doc } = loadPage("projects.html");
+      const tiles = [...doc.querySelectorAll(".tiles > li.tile")];
+      tiles.forEach((t, i) => {
+        const img = t.querySelector(".tile-art > img");
+        expect(img, TILE_KEYS[i]).not.toBeNull();
+        expect(img.getAttribute("src")).toBe(`assets/img/projects/${TILE_KEYS[i]}.svg`);
+        expect(img.getAttribute("alt")).toBe("");
+        expect([img.getAttribute("width"), img.getAttribute("height")]).toEqual(["160", "120"]);
+        expect(t.firstElementChild.classList.contains("tile-art"), "art at the top of the tile").toBe(true);
+      });
+      const svg = readFileSync(resolve(ROOT, "assets/img/projects/stealth-ai-startup.svg"), "utf8");
+      expect(svg.trim()).toMatch(/^<svg[\s>]/);
+      expect(svg).not.toMatch(/<text\b|<image\b|data:image\/|https?:\/\/(?!www\.w3\.org\/)/i);
+    });
   });
 
   it("workbench panels show a labelled placeholder when there is no media", () => {

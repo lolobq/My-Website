@@ -74,6 +74,15 @@ test.describe("@a11y axe", () => {
     await audit(page, "projects.html#capstone (dialog)", testInfo);
   });
 
+  test("projects with the queue at the last tile (status announced, Next aria-disabled)", async ({ page }, testInfo) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/projects.html");
+    await page.locator(".queue-dot").last().click();
+    await expect(page.locator(".tiles > li.tile").last()).toHaveClass(/\bis-current\b/);
+    await expect(page.locator(".queue-status")).not.toHaveText("");
+    await audit(page, "projects.html (queue at the end)", testInfo);
+  });
+
   for (const url of ["/reflections.html", "/reflections.html?tag=tech", "/reflections.html?post=shipping-agents"]) {
     test(`reflections with posts: ${url}`, async ({ page }, testInfo) => {
       await injectPosts(page, FIXTURE_POSTS);

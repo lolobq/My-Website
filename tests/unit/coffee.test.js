@@ -54,10 +54,10 @@ const heartCells = (fills) =>
   fills.filter((f) => /^rgba\(255,255,255,/.test(f.c.replace(/\s/g, "")) && f.x >= 45 && f.x <= 49 && f.y >= 15 && f.y <= 18).length;
 
 describe("coffee scene: markup", () => {
-  it("adds a role=img canvas with a label, two egg buttons and a polite live bubble after #contact", () => {
+  it("adds a role=img canvas with a label, two egg buttons and a polite live bubble in a stage after #contact", () => {
     const { before } = setup();
     const { doc, errors } = loadPage("contact.html", { before });
-    const wrap = doc.querySelector("#contact + .coffee-scene");
+    const wrap = doc.querySelector("#contact + .coffee-stage > .coffee-scene");
     expect(wrap).not.toBeNull();
     const canvas = wrap.querySelector("canvas");
     expect(canvas.getAttribute("role")).toBe("img");
@@ -82,6 +82,53 @@ describe("coffee scene: markup", () => {
     const { before } = setup();
     const { win, doc } = loadPage("contact.html", { before });
     expect(doc.querySelector("main a[href]").getAttribute("href")).toBe(win.SITE.calendar);
+  });
+});
+
+/**
+ * Give the layout coffee.js measures (jsdom has none): the stage width, the room in <main> and the
+ * card's natural height. The scene needs 35 logical rows (heads to floor) per scale step.
+ */
+const layout = ({ stageW, room, card }) => (win) => {
+  const E = win.Element.prototype, H = win.HTMLElement.prototype;
+  const cw = Object.getOwnPropertyDescriptor(E, "clientWidth");
+  const ch = Object.getOwnPropertyDescriptor(E, "clientHeight");
+  const oh = Object.getOwnPropertyDescriptor(H, "offsetHeight");
+  Object.defineProperty(H, "clientWidth", { configurable: true, get() { return this.classList && this.classList.contains("coffee-stage") ? stageW : cw.get.call(this); } });
+  Object.defineProperty(H, "clientHeight", { configurable: true, get() { return this.tagName === "MAIN" ? room : ch.get.call(this); } });
+  Object.defineProperty(H, "offsetHeight", { configurable: true, get() { return this.id === "contact" ? card : oh.get.call(this); } });
+  const main = win.document.querySelector("main");
+  main.style.padding = "0px"; // no stylesheet in jsdom: computed padding would be empty
+};
+const fitPage = (l) => {
+  const { before } = setup();
+  const size = layout(l);
+  return loadPage("contact.html", { before: (win) => { before(win); size(win); } });
+};
+
+describe("coffee scene: size (largest whole pixel scale that fits under the card, 3x to 6x)", () => {
+  it.each([
+    [{ stageW: 1600, room: 1000, card: 300 }, "6"], // capped at 6x
+    [{ stageW: 600, room: 500, card: 300 }, "5"], // height-bound: 200 / 35
+    [{ stageW: 300, room: 900, card: 300 }, "3"], // width-bound: 300 / 88
+    [{ stageW: 600, room: 405, card: 300 }, "3"], // exactly 3x of height
+  ])("%o -> --s %s, shown, main.has-scene", (l, s) => {
+    const { doc } = fitPage(l);
+    const wrap = doc.querySelector(".coffee-scene");
+    expect(wrap.hidden).toBe(false);
+    expect(wrap.style.getPropertyValue("--s")).toBe(s);
+    expect(doc.querySelector(".coffee-stage").style.getPropertyValue("--s")).toBe(s);
+    expect(doc.querySelector("main").classList.contains("has-scene")).toBe(true);
+  });
+
+  it.each([
+    [{ stageW: 263, room: 900, card: 300 }], // too narrow for 3x
+    [{ stageW: 600, room: 404, card: 300 }], // too short for 3x under the card
+    [{ stageW: 600, room: 250, card: 300 }], // card alone fills the page
+  ])("%o -> hidden on first load, instead of scrolling or covering the card", (l) => {
+    const { doc } = fitPage(l);
+    expect(doc.querySelector(".coffee-scene").hidden).toBe(true);
+    expect(doc.querySelector("main").classList.contains("has-scene")).toBe(false);
   });
 });
 

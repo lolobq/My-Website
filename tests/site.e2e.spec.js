@@ -95,6 +95,21 @@ for (const pg of PAGES) {
       expect(brown, "text on .stone surfaces using the old brown (#5e2a14)").toEqual([]);
     });
 
+    test("stone surfaces are marble, not the old 48px grain alone", async ({ page }) => {
+      await page.goto(pg.path);
+      const grainOnly = await page.$$eval(".stone", (els) =>
+        els
+          .filter((el) => {
+            const cs = getComputedStyle(el);
+            if (cs.display === "none" || cs.backgroundImage === "none") return false;
+            // The old surface was one tiling grain layer at 48px; marble adds gloss + veins layers.
+            return cs.backgroundSize.split(",").map((s) => s.trim()).every((s) => s === "48px 48px");
+          })
+          .map((el) => `${el.tagName.toLowerCase()}.${String(el.className).trim().split(/\s+/).join(".")}`)
+      );
+      expect(grainOnly, ".stone surfaces still painted with only the 48px grain").toEqual([]);
+    });
+
     test("one h1 and a working skip link", async ({ page, browserName }) => {
       await page.goto(pg.path);
       await expect(page.locator("h1"), "exactly one h1").toHaveCount(1);
@@ -115,6 +130,68 @@ for (const pg of PAGES) {
     });
   });
 }
+
+test.describe("header: no nav collisions (behaviour, no fixed heights)", () => {
+  /** Boxes of the name/tagline and every visible nav link; pairs that overlap; links clipped or off-screen. */
+  const headerProblems = (page) =>
+    page.evaluate(() => {
+      const vw = document.documentElement.clientWidth;
+      const vis = (el) => { const cs = getComputedStyle(el); const r = el.getBoundingClientRect(); return cs.display !== "none" && cs.visibility !== "hidden" && r.width > 0 && r.height > 0; };
+      const label = (el) => (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 24);
+      const parts = [
+        ...[...document.querySelectorAll("#site-header .who > *")].filter(vis).map((el) => ({ el, name: `brand "${label(el)}"` })),
+        ...[...document.querySelectorAll("#site-header nav a")].filter(vis).map((el) => ({ el, name: `nav "${label(el)}"` })),
+      ].map((p) => ({ ...p, r: p.el.getBoundingClientRect() }));
+      const out = [];
+      const T = 0.5;
+      for (let i = 0; i < parts.length; i++) {
+        const a = parts[i];
+        if (a.r.left < -T || a.r.right > vw + T) out.push(`${a.name} outside the viewport [${Math.round(a.r.left)}..${Math.round(a.r.right)}] of ${vw}`);
+        if (a.name.startsWith("nav") && a.el.scrollWidth > a.el.clientWidth + 1) out.push(`${a.name} text clipped (${a.el.scrollWidth} > ${a.el.clientWidth})`);
+        for (let j = i + 1; j < parts.length; j++) {
+          const b = parts[j];
+          // The name and tagline stack inside one link, so only brand-vs-nav and nav-vs-nav pairs count.
+          if (a.name.startsWith("brand") && b.name.startsWith("brand")) continue;
+          const ox = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left);
+          const oy = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
+          if (ox > T && oy > T) out.push(`${a.name} overlaps ${b.name} by ${Math.round(ox)}x${Math.round(oy)}`);
+        }
+      }
+      // The visible label sits inside the bar. (On phones the 44px hit area may hang below the slim
+      // bar by design; only the text has to stay on the slab.)
+      const header = document.querySelector("#site-header .bar");
+      const hb = header ? header.getBoundingClientRect() : null;
+      for (const p of parts) {
+        const range = document.createRange();
+        range.selectNodeContents(p.el);
+        const t = range.getBoundingClientRect();
+        if (hb && (t.bottom > hb.bottom + T || t.top < hb.top - T)) out.push(`${p.name} text outside the header bar (${Math.round(t.top)}..${Math.round(t.bottom)} vs ${Math.round(hb.top)}..${Math.round(hb.bottom)})`);
+      }
+      // A nav hit area that hangs below the bar must not cover a control on the page.
+      const navRects = parts.filter((p) => p.name.startsWith("nav")).map((p) => p.r);
+      for (const c of document.querySelectorAll("main a[href], main button, main [tabindex='0']")) {
+        if (!vis(c) || c.closest("[inert], dialog:not([open])")) continue;
+        const r = c.getBoundingClientRect();
+        if (navRects.some((n) => Math.min(n.right, r.right) - Math.max(n.left, r.left) > T && Math.min(n.bottom, r.bottom) - Math.max(n.top, r.top) > T))
+          out.push(`a nav hit area covers page control "${label(c)}"`);
+      }
+      return out;
+    });
+
+  for (const pg of PAGES) {
+    test(`${pg.name}: brand and nav links never collide`, async ({ page }, testInfo) => {
+      const widths = testInfo.project.name.includes("mobile") ? [360, 375, 390] : [1024, 1440];
+      for (const w of widths) {
+        await page.setViewportSize({ width: w, height: testInfo.project.name.includes("mobile") ? 740 : 900 });
+        await page.goto(pg.path);
+        await page.evaluate(() => document.fonts.ready);
+        expect(await headerProblems(page), `${pg.name} at ${w}px`).toEqual([]);
+        const small = (await smallTapTargets(page)).filter((s) => s.startsWith("a") || s.startsWith("button"));
+        expect(small.filter((s) => /^a\b/.test(s)), `${pg.name} at ${w}px: nav tap targets under 44x44`).toEqual([]);
+      }
+    });
+  }
+});
 
 test.describe("mobile 375px layout", () => {
   test.beforeEach(({}, testInfo) => {
