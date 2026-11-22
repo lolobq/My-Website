@@ -56,13 +56,18 @@ for (const pg of PAGES) {
       expect((await request.get(new URL(iconHref, page.url()).pathname)).status(), `favicon ${iconHref}`).toBe(200);
     });
 
-    test("nav: labels and order; Reflections hidden; aria-current", async ({ page }) => {
+    test("nav: labels and order; Reflections shown with POSTS empty; aria-current", async ({ page }) => {
       await page.goto(pg.path);
       const nav = page.locator(SEL.nav).first();
       await expect(nav).toBeVisible();
       const labels = (await nav.locator("a:visible").allInnerTexts()).map(norm);
       expect(labels, "visible nav labels in order").toEqual(NAV_ORDER);
-      await expect(nav.getByRole("link", { name: /writing|reflections/i }), "Reflections hidden while POSTS is empty").toHaveCount(0);
+      // Committed content ships with POSTS empty; Reflections still shows (Lauren's call).
+      expect(await page.evaluate(() => { const P = /** @type {any} */ (window).POSTS; return Array.isArray(P) && P.length; }), "POSTS ships empty").toBe(0);
+      const refl = nav.getByRole("link", { name: /^reflections$/i });
+      await expect(refl, "Reflections in the nav even while POSTS is empty").toHaveCount(1);
+      await expect(refl).toHaveAttribute("href", "reflections.html");
+      await expect(nav.getByRole("link", { name: /writing/i })).toHaveCount(0);
 
       const current = nav.locator('a[aria-current="page"]');
       if (pg.nav) {
@@ -71,6 +76,23 @@ for (const pg of PAGES) {
       } else if (pg.name === "home") {
         await expect(current, "no nav item is current on the home page").toHaveCount(0);
       }
+    });
+
+    test("text on stone is ink, never the old brown #5e2a14", async ({ page }) => {
+      await page.goto(pg.path);
+      await page.waitForLoadState("networkidle");
+      const brown = await page.evaluate(() => {
+        const out = [];
+        for (const el of document.querySelectorAll(".stone, .stone *")) {
+          const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && /\S/.test(n.textContent || ""));
+          if (!hasText) continue;
+          const c = getComputedStyle(el).color.replace(/\s/g, "");
+          if (/^rgba?\(94,42,20(,1)?\)$/.test(c)) out.push(`${el.tagName.toLowerCase()}${el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\s+/).join(".") : ""} "${(el.textContent || "").trim().slice(0, 30)}"`);
+          if (out.length >= 10) break;
+        }
+        return out;
+      });
+      expect(brown, "text on .stone surfaces using the old brown (#5e2a14)").toEqual([]);
     });
 
     test("one h1 and a working skip link", async ({ page, browserName }) => {

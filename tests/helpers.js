@@ -14,13 +14,13 @@ const PAGES = [
   { name: "resume", path: "/resume.html", nav: "Resume" },
   { name: "projects", path: "/projects.html", nav: "Projects" },
   { name: "about", path: "/about.html", nav: "About" },
-  { name: "reflections", path: "/reflections.html", nav: null }, // Reflections: hidden while POSTS is empty
+  { name: "reflections", path: "/reflections.html", nav: "Reflections" }, // always in the nav (Lauren's call)
   { name: "speaking", path: "/speaking.html", nav: "Speaking" },
   { name: "contact", path: "/contact.html", nav: "Let's Get Coffee" },
 ];
 
-/** Visible nav order at launch (Reflections hidden because window.POSTS is empty). */
-const NAV_ORDER = ["Resume", "Projects", "About", "Speaking", "Let's Get Coffee"];
+/** Visible nav order. Reflections always shows (Lauren's call), even while window.POSTS is empty. */
+const NAV_ORDER = ["Resume", "Projects", "About", "Reflections", "Speaking", "Let's Get Coffee"];
 
 /** Normalise curly apostrophes and whitespace so "Let’s" == "Let's". */
 const norm = (s) => String(s || "").replace(/[‘’]/g, "'").replace(/\s+/g, " ").trim();
@@ -30,11 +30,12 @@ const SEL = {
   cards: "#story .card",
   scrollHint: "#scroll-hint",
   skipToWork: "#skip-to-work",
-  // Resume is PDF-first: #document is the PDF region (heading, Download / Open, iframe slot);
-  // #resume-document is the HTML text version inside a collapsed <details>.
+  // Resume is just the PDF: #document holds the sr-only h1, the stone iframe slot (desktop with a
+  // viewer) and the stone fallback slab (Open / Download). #resume-document is the sr-only HTML
+  // text version (screen readers, search, print).
   document: "#document",
   resumeText: "#resume-document",
-  resumeDetails: "details.resume-text",
+  resumeFallback: "#document .resume-fallback",
 };
 
 /**

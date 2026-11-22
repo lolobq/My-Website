@@ -1,7 +1,7 @@
 // @ts-check
 /*
  * @a11y: axe-core on every page, the home page at several scroll positions, the resume
- * (PDF region, embedded PDF, open text version), an open project dialog, and Reflections
+ * (PDF region, embedded PDF, sr-only text version), the coffee bubble, an open project dialog, and Reflections
  * with fixture posts (list, filtered, post page). Target: zero violations (WCAG 2.0/2.1/2.2 A+AA plus axe best practices,
  * which cover heading order and landmarks that Lighthouse also scores).
  * "Incomplete" results (typically contrast over the canvas, which axe cannot compute)
@@ -43,10 +43,19 @@ test.describe("@a11y axe", () => {
     await audit(page, "resume.html#document", testInfo);
   });
 
-  test("resume with the text version open", async ({ page }, testInfo) => {
+  test("resume with the sr-only text version (#resume-document) present", async ({ page }, testInfo) => {
     await page.goto("/resume.html");
-    await page.locator("details.resume-text summary").click();
-    await audit(page, "resume.html (text version open)", testInfo);
+    await expect(page.locator("article#resume-document")).toHaveCount(1);
+    await page.waitForLoadState("networkidle");
+    await audit(page, "resume.html (#resume-document present)", testInfo);
+  });
+
+  test("contact with the statue's 'So I did.' bubble showing", async ({ page }, testInfo) => {
+    await page.goto("/contact.html");
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("button", { name: /statue/i }).click();
+    await expect(page.locator(".coffee-bubble")).toHaveText("So I did.");
+    await audit(page, "contact.html (bubble)", testInfo);
   });
 
   test("resume with the embedded PDF (desktop)", async ({ page }, testInfo) => {

@@ -22,17 +22,21 @@ const QUOTE = /Every block of stone has a statue inside it, and it is the task o
 const EXPECTED_CARDS = 8; // prologue + 6 identity cards + closing card
 const SKIP = /skip to resume/i;
 
-/** Scroll top -> bottom in `steps` increments, recording active card indices at each step. */
 /**
  * Scroll top -> bottom in `steps` increments inside the page (one round trip in total, so it
- * stays fast when parallel workers compete for CPU). At each step, wait `nFrames` animation
- * frames, then record what `probe` returns. `probe` is "active" (exposed card indices, same
- * rule as helpers.activeCards) or "opacity" (per-card effective opacity + whether the story
- * has started).
+ * stays fast when parallel workers compete for CPU), recording what `probe` returns at each
+ * step: "active" (exposed card indices, same rule as helpers.activeCards) or "opacity"
+ * (per-card effective opacity + whether the story has started).
+ *
+ * One animation frame per step is enough, and deterministic: an instant scrollTo queues the
+ * scroll event for the next frame, which runs before that frame's rAF callbacks; js/scene.js
+ * reads the scroll there and its frame() (registered a frame earlier than ours) applies the
+ * cards before our callback reads them. Every 8th step re-reads one frame later to prove the
+ * state had settled; any difference is returned in `unsettled` and must be empty.
  */
-function walkInPage(page, steps, probe, nFrames = 3) {
+function walkInPage(page, steps, probe) {
   return page.evaluate(
-    async ({ steps, probe, nFrames, sel }) => {
+    async ({ steps, probe, sel }) => {
       const raf = () => new Promise((r) => requestAnimationFrame(() => r(null)));
       const cards = () => [...document.querySelectorAll(sel)];
       const read = () => {
@@ -51,21 +55,37 @@ function walkInPage(page, steps, probe, nFrames = 3) {
           }),
         };
       };
-      const out = [];
+      const rows = [];
+      const unsettled = [];
+      const t0 = performance.now();
       for (let k = 0; k <= steps; k++) {
         const max = document.documentElement.scrollHeight - window.innerHeight;
         window.scrollTo({ top: Math.round((max * k) / steps), behavior: "instant" });
-        for (let f = 0; f < nFrames; f++) await raf();
-        out.push(read());
+        await raf();
+        const row = read();
+        rows.push(row);
+        if (k % 8 === 0) {
+          await raf();
+          const again = read();
+          if (JSON.stringify(again) !== JSON.stringify(row)) unsettled.push(`step ${k}: ${JSON.stringify(row)} -> ${JSON.stringify(again)}`);
+        }
       }
-      return out;
+      return { rows, unsettled, ms: Math.round(performance.now() - t0) };
     },
-    { steps, probe, nFrames, sel: SEL.cards }
+    { steps, probe, sel: SEL.cards }
   );
 }
 
+/** Walk, assert every sampled step had settled after one frame, and return the per-step rows. */
+async function walk(page, steps, probe) {
+  const { rows, unsettled, ms } = await walkInPage(page, steps, probe);
+  test.info().annotations.push({ type: "walk", description: `${probe} x${steps + 1} steps in ${ms}ms` });
+  expect(unsettled, "card state changed one frame after the step was read (one-frame walk assumption)").toEqual([]);
+  return rows;
+}
+
 /** Active card indices at each of `steps` + 1 scroll positions, top to bottom. */
-const walkStory = (page, steps = 48) => walkInPage(page, steps, "active");
+const walkStory = (page, steps = 48) => walk(page, steps, "active");
 
 test.describe("home: structure", () => {
   test("quote is a <blockquote> with figcaption attribution", async ({ page }) => {
@@ -434,7 +454,7 @@ test.describe("home: scroll-tied story cards", () => {
     await page.goto("/index.html");
     await page.waitForLoadState("networkidle");
     const STEPS = 120;
-    const rows = (await walkInPage(page, STEPS, "opacity", 2)).map((r, k) => ({ k, ...r }));
+    const rows = (await walk(page, STEPS, "opacity")).map((r, k) => ({ k, ...r }));
     const story = rows.filter((r) => r.started);
     const empty = story.filter((r) => Math.max(...r.op) < 0.05).map((r) => r.k);
     expect(empty.length, `scroll steps (of ${story.length}) with no visible card: ${empty.join(",")}`).toBeLessThanOrEqual(1);
@@ -456,31 +476,101 @@ test.describe("home: quote typing", () => {
   const FULL = "“Every block of stone has a statue inside it, and it is the task of the sculptor to discover it.”";
   const typedLen = (page) => page.evaluate(() => (document.querySelector("#quote .q-typed") || {}).textContent?.length || 0);
 
+  /** Fake clock, paused from the first byte: time and rAF advance only through clock.runFor(). */
+  const pausedClock = async (page) => {
+    const t0 = new Date("2026-11-20T12:00:00Z");
+    await page.clock.install({ time: t0 });
+    await page.clock.pauseAt(new Date(t0.getTime() + 60_000)); // well ahead of the clock (about:blank has no timers)
+  };
+
+  // Desktop shares the CPU with other workers animating a 1440px canvas, so the timing below is
+  // measured in the page (rAF samples, event-time reads), never across Playwright round trips.
+  test.slow(({ isMobile }) => !isMobile, "desktop canvas under parallel load");
+
   test("types over about 3.1s", async ({ page }) => {
+    // Sample the typed length every frame, in-page from document start (so a slow load can't
+    // make us miss the beginning), from the first character to is-typed.
+    await page.addInitScript((fullLen) => {
+      const w = /** @type {any} */ (window);
+      w.__typing = new Promise((resolve) => {
+        const samples = [];
+        let firstAt = 0, longFrames = 0, prev = 0;
+        const tick = (now) => {
+          const q = document.getElementById("quote");
+          const n = q ? ((q.querySelector(".q-typed") || {}).textContent || "").length : 0;
+          if (prev && now - prev > 50) longFrames++; // the typer caps each step at 50ms
+          prev = now;
+          if (n > 0 && !firstAt) firstAt = now;
+          if (firstAt) samples.push(n);
+          if (q && q.classList.contains("is-typed")) {
+            resolve({ ms: firstAt ? now - firstAt : 0, samples, longFrames, done: n, startedPartial: samples.length > 0 && samples[0] < fullLen });
+            return;
+          }
+          if (now > 30000) return resolve({ ms: -1, samples, longFrames, done: n, startedPartial: false });
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    }, FULL.length);
     await page.goto("/index.html");
-    await page.waitForTimeout(1_000);
-    const mid = await typedLen(page);
-    expect(mid, "partially typed after 1s").toBeGreaterThan(0);
-    expect(mid).toBeLessThan(FULL.length);
-    await page.waitForFunction(() => document.getElementById("quote").classList.contains("is-typed"), null, { timeout: 8_000 });
-    const t = await page.evaluate(() => performance.now());
-    expect(t, "typing finishes no earlier than ~2.5s after navigation").toBeGreaterThan(2_500);
-    expect(t, "typing finishes within ~5s of navigation").toBeLessThan(5_500);
-    expect(await typedLen(page)).toBe(FULL.length);
+    const run = await page.evaluate(() => /** @type {any} */ (window).__typing);
+    expect(run.startedPartial, "observed partway through typing (not already finished)").toBe(true);
+    expect(run.done, "full quote typed").toBe(FULL.length);
+    // ~3.1s of typing clock; the clock never runs ahead of real time, so it can't be much faster.
+    expect(run.ms, "typing takes at least ~2.5s").toBeGreaterThan(2_500);
+    // Long frames (> 50ms) slow the typer down by design; allow for them, but keep a hard ceiling.
+    const ceiling = 5_500 + run.longFrames * 60;
+    expect(run.ms, `typing finishes in ~3.1s (+ allowance for ${run.longFrames} long frames)`).toBeLessThan(Math.min(ceiling, 15_000));
+    const lens = run.samples;
+    const monotonic = lens.every((n, i) => i === 0 || n >= lens[i - 1]);
+    expect(monotonic, "typed length never goes backwards").toBe(true);
+    expect(new Set(lens).size, "many intermediate lengths (steady typing, not a burst)").toBeGreaterThan(30);
     expect(await page.locator("#quote .q-rest").textContent()).toBe("");
   });
 
   for (const how of ["scroll", "key"]) {
     test(`finishes immediately on ${how}`, async ({ page }) => {
+      // Round trips to a loaded desktop page can take ~0.5s each, longer than the gap we need to
+      // hit. So the page runs on Playwright's fake clock: time (and rAF) only moves when we say,
+      // which makes "partially typed, then the event" exact instead of a race.
+      await pausedClock(page);
       await page.goto("/index.html");
-      await page.waitForTimeout(400);
-      expect(await typedLen(page)).toBeLessThan(FULL.length);
-      if (how === "scroll") await page.evaluate(() => window.scrollTo(0, 40));
-      else await page.keyboard.press("Shift");
-      await expect.poll(() => typedLen(page), { timeout: 500 }).toBe(FULL.length);
+      await page.clock.runFor(1_000); // ~1s of typing: underway, not done
+      const before = await typedLen(page);
+      expect(before, "partially typed after 1s").toBeGreaterThan(0);
+      expect(before).toBeLessThan(FULL.length);
+      // Read the length inside the event, right after the site's own finish handler (registered
+      // earlier on window, so it runs first), with no clock time passing.
+      await page.evaluate((ev) => {
+        const w = /** @type {any} */ (window);
+        const q = document.getElementById("quote");
+        w.__finish = new Promise((resolve) =>
+          window.addEventListener(ev, () => resolve({ len: ((q.querySelector(".q-typed") || {}).textContent || "").length, typed: q.classList.contains("is-typed") }), { once: true, passive: true })
+        );
+      }, how === "scroll" ? "scroll" : "keydown");
+      if (how === "scroll") {
+        await page.evaluate(() => window.scrollTo(0, 40));
+        await page.clock.runFor(20); // one frame for the scroll event to be dispatched
+      } else await page.keyboard.press("Shift");
+      const r = await page.evaluate(() => /** @type {any} */ (window).__finish);
+      expect(r.len, `full quote in the same ${how} event`).toBe(FULL.length);
+      expect(r.typed).toBe(true);
       await expect(page.locator("#quote")).toHaveClass(/is-typed/);
     });
   }
+
+  test("without input the quote is still partial at 2s and done by 4s (fake clock)", async ({ page }) => {
+    await pausedClock(page);
+    await page.goto("/index.html");
+    await page.clock.runFor(2_000);
+    const mid = await typedLen(page);
+    expect(mid, "partial at 2s").toBeGreaterThan(20);
+    expect(mid).toBeLessThan(FULL.length);
+    await expect(page.locator("#quote")).not.toHaveClass(/is-typed/);
+    await page.clock.runFor(2_000);
+    expect(await typedLen(page), "done by 4s").toBe(FULL.length);
+    await expect(page.locator("#quote")).toHaveClass(/is-typed/);
+  });
 
   test("reduced motion: full quote immediately", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });

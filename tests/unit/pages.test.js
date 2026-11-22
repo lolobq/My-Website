@@ -13,9 +13,15 @@ const WIDE = (q) => /min-width: 768px/.test(q) && /pointer: fine/.test(q);
 const REDUCE = (q) => /prefers-reduced-motion: reduce/.test(q);
 
 describe("nav", () => {
-  it("hides Reflections while window.POSTS is empty, with capitalized coffee label", () => {
+  it("shows Reflections even while window.POSTS is empty (Lauren's call), with capitalized coffee label", () => {
     const { doc } = loadPage("about.html", { before: (w) => { w.POSTS = []; } });
-    expect(navLabels(doc)).toEqual(["Resume", "Projects", "About", "Speaking", "Let's Get Coffee"]);
+    expect(navLabels(doc)).toEqual(["Resume", "Projects", "About", "Reflections", "Speaking", "Let's Get Coffee"]);
+    expect(doc.querySelector('header nav a[href="reflections.html"]')).not.toBeNull();
+  });
+
+  it("shows Reflections even when window.POSTS is missing", () => {
+    const { doc } = loadPage("about.html", { before: (w) => { delete w.POSTS; } });
+    expect(navLabels(doc)).toContain("Reflections");
   });
 
   it("shows Reflections after About once a post exists", () => {
@@ -36,33 +42,60 @@ describe("nav", () => {
   });
 });
 
-describe("resume (PDF-first)", () => {
+describe("resume (just the PDF)", () => {
   it("has no dynamic/document toggle", () => {
     const { doc } = loadPage("resume.html");
     expect(doc.querySelector("#resume-dynamic, #dynamic, [data-view]")).toBeNull();
     expect(doc.querySelector("#document")).not.toBeNull();
   });
 
-  it("Download PDF (download attr) and Open in new tab (target _blank, rel noopener)", () => {
+  it("one stone slab: Open my resume (PDF) (target _blank, rel noopener) and Download PDF (download attr)", () => {
     const { doc } = loadPage("resume.html");
-    const links = [...doc.querySelectorAll("#document a")];
-    const dl = links.find((x) => /download pdf/i.test(x.textContent));
-    const open = links.find((x) => /open in new tab/i.test(x.textContent));
-    expect(dl.getAttribute("href")).toMatch(/assets\/resume\.pdf$/);
-    expect(dl.hasAttribute("download")).toBe(true);
+    const slab = doc.querySelectorAll("#document .resume-fallback");
+    expect(slab.length).toBe(1);
+    expect(slab[0].classList.contains("stone")).toBe(true);
+    const links = [...slab[0].querySelectorAll("a")];
+    expect(links.map((a) => norm(a.textContent))).toEqual(["Open my resume (PDF)", "Download PDF"]);
+    const [open, dl] = links;
     expect(open.getAttribute("href")).toMatch(/assets\/resume\.pdf$/);
     expect(open.getAttribute("target")).toBe("_blank");
     expect(open.getAttribute("rel")).toMatch(/noopener/);
+    expect(dl.getAttribute("href")).toMatch(/assets\/resume\.pdf$/);
+    expect(dl.hasAttribute("download")).toBe(true);
   });
 
-  it("text version is real HTML inside a collapsed <details>", () => {
+  it("retired: no button bar, no Open in new tab, no <details> text version", () => {
     const { doc } = loadPage("resume.html");
-    const d = doc.querySelector("details.resume-text");
-    expect(d).not.toBeNull();
-    expect(d.open).toBe(false);
-    const art = d.querySelector("#resume-document");
+    expect(doc.querySelector(".resume-actions, .resume-head, details")).toBeNull();
+    expect([...doc.querySelectorAll("main a")].some((a) => /open in new tab/i.test(a.textContent))).toBe(false);
+  });
+
+  it("h1 #resume-heading is sr-only and focusable (tabindex -1)", () => {
+    const { doc } = loadPage("resume.html");
+    const h = doc.querySelector("#document h1#resume-heading");
+    expect(h).not.toBeNull();
+    expect(h.classList.contains("sr-only")).toBe(true);
+    expect(h.getAttribute("tabindex")).toBe("-1");
+    expect(norm(h.textContent)).not.toBe("");
+  });
+
+  it("text version is a real-HTML sr-only <article>; its links skip the Tab order", () => {
+    const { doc } = loadPage("resume.html");
+    const art = doc.querySelector("article#resume-document");
+    expect(art).not.toBeNull();
+    expect(art.classList.contains("sr-only")).toBe(true);
+    expect(art.closest("#document")).toBeNull();
     expect(norm(art.textContent).length).toBeGreaterThan(500);
     expect([...art.querySelectorAll("h2")].map((h) => h.textContent)).toContain("Experience");
+    const links = [...art.querySelectorAll("a")];
+    expect(links.filter((a) => a.getAttribute("tabindex") !== "-1").map((a) => a.getAttribute("href"))).toEqual([]);
+  });
+
+  it("the iframe goes in the stone frame slot, and the slab hides via has-pdf-frame", () => {
+    const { doc } = loadPage("resume.html", { media: WIDE, pdfViewer: true });
+    const f = doc.querySelector("#document iframe");
+    expect(f.closest(".resume-frame-slot.stone")).not.toBeNull();
+    expect(doc.body.classList.contains("has-pdf-frame")).toBe(true);
   });
 
   it("embeds the PDF in an iframe on wide fine-pointer screens with a PDF viewer", () => {
@@ -107,13 +140,13 @@ describe("resume (PDF-first)", () => {
     expect(doc.activeElement && doc.activeElement.id).not.toBe("resume-heading");
   });
 
-  it("printing opens the text version, then restores it", () => {
-    const { win, doc } = loadPage("resume.html");
-    const d = doc.querySelector("details.resume-text");
+  it("print events do not throw or change the DOM (CSS un-hides the text version)", () => {
+    const { win, doc, errors } = loadPage("resume.html");
+    const before = doc.querySelector("#resume").innerHTML;
     win.dispatchEvent(new win.Event("beforeprint"));
-    expect(d.open).toBe(true);
     win.dispatchEvent(new win.Event("afterprint"));
-    expect(d.open).toBe(false);
+    expect(doc.querySelector("#resume").innerHTML).toBe(before);
+    expect(errors.map(String)).toEqual([]);
   });
 });
 
