@@ -66,20 +66,21 @@
   .resume-text .resume-doc { margin: 0; box-shadow: none !important; }
 }
 
-/* ───────────── Projects: the garden, without the sculptor ───────────── */
-body.page.page-projects { background: #8fc9ea; }
-.page-projects::before {
+/* ───────────── Projects and Resume: the sunset garden, without the sculptor ───────────── */
+body.page.page-projects, body.page.page-resume { background: #4f377a; }
+.page-projects::before, .page-resume::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: #8fc9ea url("../assets/img/garden-mobile.webp") center top / cover no-repeat;
+  background: #4f377a url("../assets/img/garden-mobile.webp") center top / cover no-repeat;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 @media (min-aspect-ratio: 4/5) {
-  .page-projects::before { background-image: url("../assets/img/garden-desktop.webp"); }
+  .page-projects::before, .page-resume::before { background-image: url("../assets/img/garden-desktop.webp"); }
 }
+@media print { .page-projects::before, .page-resume::before { display: none; } }
 .page-projects .page-main { max-width: 1120px; padding: calc(var(--header-h) + 22px) 20px 40px; }
 .projects { display: grid; gap: 18px; }
 
