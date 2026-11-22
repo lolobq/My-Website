@@ -141,27 +141,22 @@
       ${honors.length ? `<section><h2>Honors</h2>${ul(honors)}</section>` : ""}
       ${pubs.length ? `<section><h2>Publications</h2><ul>${pubs.map((p) => `<li>${pubLink(p)}</li>`).join("")}</ul></section>` : ""}`;
 
-    // The PDF is the page: Download / Open in new tab, then the embedded PDF where it renders well.
-    // Phones and touch screens get no frame (Android shows nothing, iOS only page 1); the buttons
-    // are the path there. The HTML text version stays below for screen readers, search and no-PDF.
+    // The PDF is the page: just the garden and the embedded PDF in a stone frame (the viewer's
+    // own toolbar downloads and prints). Phones, touch and no-viewer browsers get no frame
+    // (Android shows nothing, iOS only page 1); there one stone slab holds Open / Download.
+    // The heading and the HTML text version are visually hidden, for screen readers, search
+    // and print (links in it skip the Tab order, so keyboard focus never goes invisible).
     resume.innerHTML = `
       <section id="document" class="resume-pdf" aria-labelledby="resume-heading">
-        <div class="resume-head stone">
-          <div class="resume-title">
-            <h1 id="resume-heading" tabindex="-1">${esc(R.title || "Resume")}</h1>
-            ${R.lede ? `<p class="lede">${esc(R.lede)}</p>` : ""}
-          </div>
-          <div class="resume-actions">
-            <a class="btn btn-link" href="${esc(pdf)}" download>Download PDF</a>
-            <a class="btn" href="${esc(pdf)}" target="_blank" rel="noopener">Open in new tab</a>
-          </div>
+        <h1 id="resume-heading" class="sr-only" tabindex="-1">${esc(R.title || "Resume")}</h1>
+        <div class="resume-frame-slot stone"></div>
+        <div class="resume-fallback stone">
+          <a class="btn btn-link" href="${esc(pdf)}" target="_blank" rel="noopener">Open my resume (PDF)</a>
+          <a class="btn" href="${esc(pdf)}" download>Download PDF</a>
         </div>
-        <div class="resume-frame-slot"></div>
       </section>
-      <details class="resume-text stone">
-        <summary>Text version</summary>
-        <article class="resume-doc" id="resume-document" aria-label="${esc(R.title || "Resume")}, text version">${documentView}</article>
-      </details>`;
+      <article class="resume-doc sr-only" id="resume-document" aria-label="${esc(R.title || "Resume")}, text version">${documentView}</article>`;
+    resume.querySelectorAll("#resume-document a").forEach((a) => a.setAttribute("tabindex", "-1"));
 
     const slot = resume.querySelector(".resume-frame-slot");
     const wide = matchMedia("(min-width: 768px) and (hover: hover) and (pointer: fine)");
@@ -183,12 +178,7 @@
     focusHeading();
     window.addEventListener("load", () => setTimeout(focusHeading, 0));
     window.addEventListener("hashchange", focusHeading);
-
-    // Printing prints the text version, so open it first.
-    const text = resume.querySelector(".resume-text");
-    let wasOpen = false;
-    window.addEventListener("beforeprint", () => { wasOpen = text.open; text.open = true; });
-    window.addEventListener("afterprint", () => { text.open = wasOpen; });
+    // Printing prints the text version (css/pages.css un-hides it for print).
   }
 })();
 

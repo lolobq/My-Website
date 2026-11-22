@@ -3,67 +3,51 @@
    --stone-moss, --stone-clay, --stone-line) and the header nav's font (--display, 600).
    Text on stone is --ink (or --stone-moss), never brown: AA over the darkest grain. */
 
-/* ───────────── Resume: the PDF first ───────────── */
-.page-resume .page-main { max-width: 1040px; padding-top: calc(var(--header-h) + 20px); padding-bottom: 40px; }
-.resume { gap: 16px; }
-.resume-pdf { display: grid; gap: 14px; scroll-margin-top: calc(var(--header-h) + 12px); }
-.resume-pdf .resume-head { padding: 18px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
-.resume-title { min-width: 0; }
-.resume-pdf .resume-head h1 { font-weight: 600; line-height: 1; margin: 0; }
-.page-main .resume-pdf .resume-head .lede { margin: 6px 0 0; font-size: 17px; line-height: 1.4; color: var(--ink); }
-.resume-pdf .resume-actions .btn { min-height: 48px; padding: 10px 20px; font-family: var(--display); font-weight: 600; font-size: 18px; letter-spacing: 0.3px; text-transform: none; justify-content: center; }
-.resume-pdf .resume-actions .btn-link { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.resume-pdf .resume-actions .btn-link:hover { background: var(--clay-dark); border-color: var(--clay-dark); color: #fff; }
-.resume-pdf .resume-actions .btn:not(.btn-link) { background: var(--paper); }
-.resume-pdf .resume-actions .btn:not(.btn-link):hover { background: var(--ink); color: var(--paper); }
-.resume-pdf .resume-actions .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* ───────────── Resume: the PDF on the garden, nothing else ─────────────
+   Desktop with a PDF viewer: one stone frame filling the viewport below the header.
+   Phones, touch and no-viewer browsers: one centred stone slab with Open / Download.
+   The h1 and the HTML text version are .sr-only (print shows the text version). */
+.page-resume .page-main { max-width: 1040px; padding: calc(var(--header-h) + 16px) 20px 16px; }
+.resume { display: block; }
+.resume-pdf {
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - var(--header-h) - 32px);
+  min-height: calc(100dvh - var(--header-h) - 32px);
+  scroll-margin-top: calc(var(--header-h) + 12px);
+}
+.resume-pdf h1:focus { outline: none; }
 .resume-frame-slot:empty { display: none; }
+.resume-frame-slot { width: 100%; padding: 12px; box-shadow: var(--stone-edge), 0 12px 36px rgba(43, 34, 51, 0.32); }
 .resume-pdf .resume-frame {
   display: block;
   width: 100%;
-  height: max(520px, calc(100vh - var(--header-h) - 172px));
+  height: calc(100vh - var(--header-h) - 56px);
+  height: calc(100dvh - var(--header-h) - 56px);
+  min-height: 420px;
+  padding: 0;
   border: 0;
-  border-radius: 3px;
-  box-shadow: var(--stone-edge), 0 8px 28px rgba(43, 34, 51, 0.22);
-  padding: 6px;
-  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--stone-line);
+  background: #fff;
 }
-
-/* Text version: collapsed under the PDF, the same document markup as before */
-.resume-text { padding: 0; }
-.resume-text > summary {
-  display: flex; align-items: center; gap: 10px;
-  min-height: 48px;
-  padding: 10px 24px;
-  font-family: var(--display); font-weight: 600; font-size: 20px;
-  cursor: pointer;
-  list-style: none;
+.resume-doc.sr-only { padding: 0; box-shadow: none; } /* .resume-doc's padding would still add scroll height */
+.has-pdf-frame .resume-fallback { display: none; }
+.resume-fallback { width: min(100%, 400px); display: grid; gap: 14px; padding: 26px 24px; box-shadow: var(--stone-edge), 0 12px 36px rgba(43, 34, 51, 0.32); }
+.resume-fallback .btn { min-height: 52px; padding: 10px 20px; justify-content: center; text-align: center; font-family: var(--display); font-weight: 600; font-size: 19px; letter-spacing: 0.3px; text-transform: none; }
+.resume-fallback .btn-link { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.resume-fallback .btn-link:hover { background: var(--clay-dark); border-color: var(--clay-dark); color: #fff; }
+.resume-fallback .btn:not(.btn-link) { background: var(--paper); }
+.resume-fallback .btn:not(.btn-link):hover { background: var(--ink); color: var(--paper); }
+.resume-fallback .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+@media (max-width: 560px) {
+  .page-resume .page-main { padding: calc(var(--header-h) + 14px) 16px 14px; }
+  .resume-pdf { min-height: calc(100vh - var(--header-h) - 28px); min-height: calc(100dvh - var(--header-h) - 28px); }
+  .resume-fallback { padding: 22px 18px; }
 }
-.resume-text > summary::-webkit-details-marker { display: none; }
-.resume-text > summary::before {
-  content: ""; width: 0; height: 0;
-  border-style: solid; border-width: 6px 0 6px 9px; border-color: transparent transparent transparent var(--ink);
-  transition: transform 150ms ease;
-}
-.resume-text[open] > summary::before { transform: rotate(90deg); }
-.resume-text > summary:hover { text-decoration: underline; text-underline-offset: 4px; }
-.resume-text > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: -6px; }
-.resume-text .resume-doc { margin: 0 12px 12px; background: var(--paper); box-shadow: 0 0 0 1px var(--stone-line); border-radius: 3px; } /* paper, like the PDF it mirrors */
-
-/* Phones and touch screens: no frame, so the buttons are the main event */
-@media (max-width: 767px) {
-  .resume-pdf .resume-head { flex-direction: column; align-items: stretch; padding: 18px; }
-  .resume-pdf .resume-actions { display: grid; grid-template-columns: 1fr; gap: 10px; }
-  .resume-pdf .resume-actions .btn { min-height: 52px; font-size: 19px; }
-  .resume-text > summary { padding: 10px 18px; }
-  .resume-text .resume-doc { margin: 0 8px 8px; }
-}
-@media (prefers-reduced-motion: reduce) { .resume-text > summary::before { transition: none; } }
 @media print {
-  .resume-pdf, .resume-text > summary { display: none !important; }
-  .resume-text, .resume-text[open] { padding: 0; background: #fff !important; box-shadow: none !important; }
-  .resume-text::details-content { content-visibility: visible; display: contents; }
-  .resume-text .resume-doc { margin: 0; box-shadow: none !important; }
+  .resume-pdf { display: none !important; }
+  .resume-doc.sr-only { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: normal; }
 }
 
 /* ───────────── Projects and Resume: the sunset garden, without the sculptor ───────────── */
