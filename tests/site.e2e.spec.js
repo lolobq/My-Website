@@ -56,13 +56,13 @@ for (const pg of PAGES) {
       expect((await request.get(new URL(iconHref, page.url()).pathname)).status(), `favicon ${iconHref}`).toBe(200);
     });
 
-    test("nav: labels and order; Writing hidden; aria-current", async ({ page }) => {
+    test("nav: labels and order; Reflections hidden; aria-current", async ({ page }) => {
       await page.goto(pg.path);
       const nav = page.locator(SEL.nav).first();
       await expect(nav).toBeVisible();
       const labels = (await nav.locator("a:visible").allInnerTexts()).map(norm);
       expect(labels, "visible nav labels in order").toEqual(NAV_ORDER);
-      await expect(nav.getByRole("link", { name: /writing|reflections/i }), "Writing hidden while POSTS is empty").toHaveCount(0);
+      await expect(nav.getByRole("link", { name: /writing|reflections/i }), "Reflections hidden while POSTS is empty").toHaveCount(0);
 
       const current = nav.locator('a[aria-current="page"]');
       if (pg.nav) {

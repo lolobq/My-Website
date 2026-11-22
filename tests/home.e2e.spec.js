@@ -1,8 +1,8 @@
 // @ts-check
 /*
- * Home page: quote, sculptor integration, scroll story, Scroll to reveal, Skip to work
- * (journey 1), scroll-to-coffee (journey 2), reduced motion, JS disabled, fast scroll,
- * resize / orientation change.
+ * Home page: quote (typing), sculptor integration, scroll-tied story cards, Scroll to reveal,
+ * Skip to Resume (journey 1), scroll-to-coffee (journey 2), sunset default, reduced motion,
+ * JS disabled, fast scroll, resize / orientation change.
  */
 const { test, expect } = require("@playwright/test");
 const {
@@ -20,6 +20,7 @@ const {
 
 const QUOTE = /Every block of stone has a statue inside it, and it is the task of the sculptor to discover it/;
 const EXPECTED_CARDS = 8; // prologue + 6 identity cards + closing card
+const SKIP = /skip to resume/i;
 
 /** Scroll top -> bottom in `steps` increments, recording active card indices at each step. */
 async function walkStory(page, steps = 48) {
@@ -49,14 +50,15 @@ test.describe("home: structure", () => {
     expect(box && box.width * box.height <= 4, "h1 is visually hidden (sr-only)").toBe(true);
   });
 
-  test("Scroll to reveal and Skip to work sit side by side under the sculptor", async ({ page }) => {
+  test("Scroll to reveal and Skip to Resume sit side by side under the sculptor", async ({ page }) => {
     await page.goto("/index.html");
     const hint = page.locator(SEL.scrollHint);
-    const skip = page.getByRole("link", { name: /skip to work/i });
+    const skip = page.getByRole("link", { name: SKIP });
     await expect(hint).toBeVisible();
     await expect(hint).toHaveAccessibleName(/scroll to reveal/i);
     await expect(skip).toBeVisible();
     await expect(skip).toHaveAttribute("href", /resume\.html#document$/);
+    await expect(skip).toHaveAttribute("id", "skip-to-work");
     const a = await hint.boundingBox();
     const b = await skip.boundingBox();
     expect(a && b, "both buttons have a box").toBeTruthy();
@@ -86,7 +88,7 @@ test.describe("home: structure", () => {
     expect(identity.includes("?"), `identity cards have side-left/side-right: ${sides.join("")}`).toBe(false);
     for (let i = 1; i < identity.length; i++) expect(identity[i], `cards alternate sides: ${sides.join("")}`).not.toBe(identity[i - 1]);
     for (let i = 1; i <= 6; i++) await expect(cards.nth(i), `identity card ${i} format`).toContainText(/younger self/i);
-    const cta = cards.last().locator("a", { hasText: /let.s grab coffee/i }); // CSS locator: card is aria-hidden at scroll 0
+    const cta = cards.last().locator("a", { hasText: /Let.s Grab Coffee/ }); // CSS locator: card is aria-hidden at scroll 0
     await expect(cta).toHaveAttribute("href", CALENDAR_URL);
   });
 });
@@ -138,14 +140,15 @@ test.describe("home: sculptor integration", () => {
 });
 
 test.describe("home: journeys", () => {
-  test("journey 1: quote -> Skip to work -> resume document view -> Download PDF", async ({ page, request }) => {
+  test("journey 1: quote -> Skip to Resume -> resume PDF region -> Download PDF", async ({ page, request }) => {
     const errs = watchErrors(page);
     await page.goto("/index.html");
     await expect(page.locator("blockquote")).toContainText(QUOTE, { timeout: 15_000 });
-    await page.getByRole("link", { name: /skip to work/i }).click();
+    await page.getByRole("link", { name: SKIP }).click();
     await expect(page).toHaveURL(/resume\.html#document$/);
     await expect(page.locator(SEL.document)).toBeVisible();
-    await expect(page.locator(SEL.dynamic)).toBeHidden();
+    await expect(page.locator("#resume-dynamic, [data-view]"), "dynamic/document toggle is retired").toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => document.activeElement && document.activeElement.id)).toBe("resume-heading");
     const focused = await page.evaluate(() => {
       const a = document.activeElement;
       return a ? { tag: a.tagName, text: (a.textContent || "").trim() } : null;
@@ -167,7 +170,7 @@ test.describe("home: journeys", () => {
     expectNoErrors(errs, "journey 1");
   });
 
-  test("journey 2: scroll through every card in order -> closing card -> Let's grab coffee opens calendar", async ({ page, context }) => {
+  test("journey 2: scroll through every card in order -> closing card -> Let's Grab Coffee opens calendar", async ({ page, context }) => {
     const errs = watchErrors(page);
     await context.route("https://calendar.app.google/**", (r) =>
       r.fulfill({ status: 200, contentType: "text/html", body: "<title>calendar stub</title>" })
@@ -190,7 +193,7 @@ test.describe("home: journeys", () => {
     const last = page.locator(SEL.cards).last();
     expect(await activeCards(page)).toContain(n - 1);
     await expect(last).toBeInViewport();
-    const cta = last.getByRole("link", { name: /let.s grab coffee/i });
+    const cta = last.getByRole("link", { name: /Let.s Grab Coffee/ });
     await expect(cta).toBeVisible();
     await expect(cta).toBeInViewport();
     await expect(cta).toHaveAttribute("href", CALENDAR_URL);
@@ -270,7 +273,7 @@ test.describe("home: journeys", () => {
     await frames(page, 3);
     await scrollToPct(page, 100);
     await frames(page, 3);
-    await expect(page.locator(SEL.cards).last().getByRole("link", { name: /let.s grab coffee/i })).toBeInViewport();
+    await expect(page.locator(SEL.cards).last().getByRole("link", { name: /Let.s Grab Coffee/ })).toBeInViewport();
     if (testInfo.project.name.includes("mobile")) expect(await hasHorizontalScroll(page)).toBe(false);
     expectNoErrors(errs, "resize");
   });
@@ -316,7 +319,7 @@ test.describe("home: reduced motion", () => {
     const trace = await walkStory(page, 32);
     const n = await page.locator(SEL.cards).count();
     for (let i = 0; i < n; i++) expect(trace.some((a) => a.includes(i)), `card ${i} reachable under reduced motion`).toBe(true);
-    await expect(page.locator(SEL.cards).last().getByRole("link", { name: /let.s grab coffee/i })).toBeInViewport();
+    await expect(page.locator(SEL.cards).last().getByRole("link", { name: /Let.s Grab Coffee/ })).toBeInViewport();
   });
 });
 
@@ -334,7 +337,7 @@ test.describe("JS disabled", () => {
       });
     });
     expect(visibleQuote, "quote visibly readable without JS").toBe(true);
-    await expect(page.getByRole("link", { name: /skip to work/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: SKIP })).toBeVisible();
   });
 
   test("navigation links exist without JS", async ({ page }) => {
@@ -342,15 +345,126 @@ test.describe("JS disabled", () => {
     await expect(page.locator(SEL.nav).first().locator("a")).not.toHaveCount(0);
   });
 
-  test("resume document view is real HTML without JS", async ({ page }) => {
+  test("resume: a working link to the PDF without JS", async ({ page, request }) => {
     await page.goto("/resume.html#document");
-    const text = norm(await page.locator(SEL.document).textContent().catch(() => ""));
-    expect(text.length, "resume text present in static HTML").toBeGreaterThan(500);
+    const link = page.locator('main a[href$="assets/resume.pdf"]').first();
+    await expect(link, "visible link to assets/resume.pdf without JS").toBeVisible();
+    const res = await request.get(new URL((await link.getAttribute("href")) || "", page.url()).pathname);
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"] || "").toMatch(/pdf/);
   });
 
   test("contact: calendar link and email without JS", async ({ page }) => {
     await page.goto("/contact.html");
     await expect(page.locator(`a[href="${CALENDAR_URL}"]`).first()).toBeVisible();
     await expect(page.locator("main")).toContainText(/@/);
+  });
+});
+
+test.describe("home: sunset is the default on every load", () => {
+  const timeState = (page) =>
+    page.evaluate(() => ({
+      time: document.body.dataset.time,
+      label: (document.querySelector("#time-toggle span") || {}).textContent,
+      ls: (() => { try { return Object.keys(localStorage); } catch (e) { return ["<unavailable>"]; } })(),
+    }));
+
+  test("first load, after toggling + reload, and after back navigation", async ({ page }) => {
+    await page.goto("/index.html");
+    expect(await timeState(page)).toEqual({ time: "sunset", label: "Sunset", ls: [] });
+
+    await page.locator("#time-toggle").click();
+    const toggled = await timeState(page);
+    expect(toggled.time, "toggle changes the time of day").not.toBe("sunset");
+    expect(toggled.label).not.toBe("Sunset");
+    expect(toggled.ls, "nothing persisted in localStorage").toEqual([]);
+
+    await page.reload();
+    expect(await timeState(page), "reload opens at sunset").toEqual({ time: "sunset", label: "Sunset", ls: [] });
+
+    await page.locator("#time-toggle").click();
+    await page.locator(SEL.nav).first().getByRole("link", { name: "About" }).click();
+    await expect(page).toHaveURL(/about\.html/);
+    await page.goBack();
+    await expect(page).toHaveURL(/index\.html/);
+    await expect.poll(() => timeState(page), { message: "back navigation (incl. bfcache) opens at sunset" }).toEqual({ time: "sunset", label: "Sunset", ls: [] });
+  });
+});
+
+test.describe("home: scroll-tied story cards", () => {
+  /** Per-card effective opacity (0 if visibility hidden or off-screen). */
+  const opacities = (page) =>
+    page.$$eval(SEL.cards, (els) =>
+      els.map((el) => {
+        const cs = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        if (cs.visibility === "hidden" || cs.display === "none" || r.bottom <= 0 || r.top >= window.innerHeight) return 0;
+        return parseFloat(cs.opacity);
+      })
+    );
+
+  test("opacity follows scroll continuously and there is no long empty stretch", async ({ page }) => {
+    await page.goto("/index.html");
+    await page.waitForLoadState("networkidle");
+    const STEPS = 120;
+    const rows = [];
+    for (let k = 0; k <= STEPS; k++) {
+      await scrollToPct(page, (100 * k) / STEPS);
+      await frames(page, 2);
+      const started = await page.evaluate(() => window.scrollY > 6);
+      rows.push({ k, started, op: await opacities(page) });
+    }
+    const story = rows.filter((r) => r.started);
+    const empty = story.filter((r) => Math.max(...r.op) < 0.05).map((r) => r.k);
+    expect(empty.length, `scroll steps (of ${story.length}) with no visible card: ${empty.join(",")}`).toBeLessThanOrEqual(1);
+
+    // Continuous: many intermediate opacities, and no card snaps by more than ~0.7 per 1/120 step.
+    const partial = story.flatMap((r) => r.op).filter((o) => o > 0.1 && o < 0.9).length;
+    expect(partial, "intermediate (partial) card opacities observed while scrolling").toBeGreaterThanOrEqual(10);
+    const jumps = [];
+    for (let i = 1; i < story.length; i++)
+      story[i].op.forEach((o, c) => {
+        const d = Math.abs(o - story[i - 1].op[c]);
+        if (d > 0.7) jumps.push(`card ${c} step ${story[i].k}: ${story[i - 1].op[c].toFixed(2)} -> ${o.toFixed(2)}`);
+      });
+    expect(jumps, "card opacity snaps between adjacent scroll steps").toEqual([]);
+  });
+});
+
+test.describe("home: quote typing", () => {
+  const FULL = "“Every block of stone has a statue inside it, and it is the task of the sculptor to discover it.”";
+  const typedLen = (page) => page.evaluate(() => (document.querySelector("#quote .q-typed") || {}).textContent?.length || 0);
+
+  test("types over about 3.1s", async ({ page }) => {
+    await page.goto("/index.html");
+    await page.waitForTimeout(1_000);
+    const mid = await typedLen(page);
+    expect(mid, "partially typed after 1s").toBeGreaterThan(0);
+    expect(mid).toBeLessThan(FULL.length);
+    await page.waitForFunction(() => document.getElementById("quote").classList.contains("is-typed"), null, { timeout: 8_000 });
+    const t = await page.evaluate(() => performance.now());
+    expect(t, "typing finishes no earlier than ~2.5s after navigation").toBeGreaterThan(2_500);
+    expect(t, "typing finishes within ~5s of navigation").toBeLessThan(5_500);
+    expect(await typedLen(page)).toBe(FULL.length);
+    expect(await page.locator("#quote .q-rest").textContent()).toBe("");
+  });
+
+  for (const how of ["scroll", "key"]) {
+    test(`finishes immediately on ${how}`, async ({ page }) => {
+      await page.goto("/index.html");
+      await page.waitForTimeout(400);
+      expect(await typedLen(page)).toBeLessThan(FULL.length);
+      if (how === "scroll") await page.evaluate(() => window.scrollTo(0, 40));
+      else await page.keyboard.press("Shift");
+      await expect.poll(() => typedLen(page), { timeout: 500 }).toBe(FULL.length);
+      await expect(page.locator("#quote")).toHaveClass(/is-typed/);
+    });
+  }
+
+  test("reduced motion: full quote immediately", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/index.html");
+    expect(await typedLen(page)).toBe(FULL.length);
+    await expect(page.locator("#quote")).toHaveClass(/is-typed/);
   });
 });

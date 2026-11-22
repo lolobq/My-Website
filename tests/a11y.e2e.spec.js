@@ -1,14 +1,15 @@
 // @ts-check
 /*
- * @a11y: axe-core on every page, the home page at several scroll positions, and both
- * resume views. Target: zero violations (WCAG 2.0/2.1/2.2 A+AA plus axe best practices,
+ * @a11y: axe-core on every page, the home page at several scroll positions, the resume
+ * (PDF region, embedded PDF, open text version), an open project dialog, and Reflections
+ * with fixture posts (list, filtered, post page). Target: zero violations (WCAG 2.0/2.1/2.2 A+AA plus axe best practices,
  * which cover heading order and landmarks that Lighthouse also scores).
  * "Incomplete" results (typically contrast over the canvas, which axe cannot compute)
  * are attached as annotations for manual review, not failures.
  */
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
-const { PAGES, scrollToPct, frames } = require("./helpers");
+const { PAGES, scrollToPct, frames, injectPosts, FIXTURE_POSTS } = require("./helpers");
 
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"];
 
@@ -36,11 +37,40 @@ test.describe("@a11y axe", () => {
     });
   }
 
-  for (const view of ["dynamic", "document"]) {
-    test(`resume #${view}`, async ({ page }, testInfo) => {
-      await page.goto(`/resume.html#${view}`);
+  test("resume #document", async ({ page }, testInfo) => {
+    await page.goto("/resume.html#document");
+    await page.waitForLoadState("networkidle");
+    await audit(page, "resume.html#document", testInfo);
+  });
+
+  test("resume with the text version open", async ({ page }, testInfo) => {
+    await page.goto("/resume.html");
+    await page.locator("details.resume-text summary").click();
+    await audit(page, "resume.html (text version open)", testInfo);
+  });
+
+  test("resume with the embedded PDF (desktop)", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.includes("desktop"), "desktop-only");
+    await page.addInitScript(() => Object.defineProperty(Navigator.prototype, "pdfViewerEnabled", { get: () => true, configurable: true }));
+    page.on("download", () => {});
+    await page.goto("/resume.html#document");
+    await expect(page.locator("#document iframe")).toHaveCount(1);
+    await audit(page, "resume.html (PDF iframe)", testInfo);
+  });
+
+  test("projects with a dialog open", async ({ page }, testInfo) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/projects.html#capstone");
+    await expect(page.locator("dialog#capstone")).toHaveAttribute("open", "");
+    await audit(page, "projects.html#capstone (dialog)", testInfo);
+  });
+
+  for (const url of ["/reflections.html", "/reflections.html?tag=tech", "/reflections.html?post=shipping-agents"]) {
+    test(`reflections with posts: ${url}`, async ({ page }, testInfo) => {
+      await injectPosts(page, FIXTURE_POSTS);
+      await page.goto(url);
       await page.waitForLoadState("networkidle");
-      await audit(page, `resume.html#${view}`, testInfo);
+      await audit(page, `${url} (fixture posts)`, testInfo);
     });
   }
 

@@ -14,13 +14,13 @@ const PAGES = [
   { name: "resume", path: "/resume.html", nav: "Resume" },
   { name: "projects", path: "/projects.html", nav: "Projects" },
   { name: "about", path: "/about.html", nav: "About" },
-  { name: "reflections", path: "/reflections.html", nav: null }, // Writing: hidden while POSTS is empty
+  { name: "reflections", path: "/reflections.html", nav: null }, // Reflections: hidden while POSTS is empty
   { name: "speaking", path: "/speaking.html", nav: "Speaking" },
-  { name: "contact", path: "/contact.html", nav: "Let's get coffee" },
+  { name: "contact", path: "/contact.html", nav: "Let's Get Coffee" },
 ];
 
-/** Visible nav order at launch (Writing hidden because window.POSTS is empty). */
-const NAV_ORDER = ["Resume", "Projects", "About", "Speaking", "Let's get coffee"];
+/** Visible nav order at launch (Reflections hidden because window.POSTS is empty). */
+const NAV_ORDER = ["Resume", "Projects", "About", "Speaking", "Let's Get Coffee"];
 
 /** Normalise curly apostrophes and whitespace so "Let’s" == "Let's". */
 const norm = (s) => String(s || "").replace(/[‘’]/g, "'").replace(/\s+/g, " ").trim();
@@ -29,12 +29,54 @@ const SEL = {
   nav: "#site-header nav, header nav",
   cards: "#story .card",
   scrollHint: "#scroll-hint",
-  skipToWork: 'a[href$="resume.html#document"]',
-  // The URL hashes are #dynamic / #document; the view elements are #resume-dynamic /
-  // #resume-document (so the browser does not jump-scroll to them).
-  dynamic: "#resume-dynamic, #dynamic",
-  document: "#resume-document, #document",
+  skipToWork: "#skip-to-work",
+  // Resume is PDF-first: #document is the PDF region (heading, Download / Open, iframe slot);
+  // #resume-document is the HTML text version inside a collapsed <details>.
+  document: "#document",
+  resumeText: "#resume-document",
+  resumeDetails: "details.resume-text",
 };
+
+/**
+ * Inject fixture blog posts without editing js/content.js: intercept the script and
+ * append an override of window.POSTS after the shipped definition.
+ */
+async function injectPosts(page, posts) {
+  await page.route("**/js/content.js", async (route) => {
+    const res = await route.fetch();
+    const body = (await res.text()) + `
+;window.POSTS = ${JSON.stringify(posts)};
+`;
+    await route.fulfill({ response: res, body, headers: { ...res.headers(), "content-type": "application/javascript" } });
+  });
+}
+
+/** Fixture posts used by the Reflections tests. */
+const FIXTURE_POSTS = [
+  {
+    slug: "shipping-agents",
+    title: "Shipping my first agent",
+    date: "2026-11-10",
+    tags: ["tech"],
+    excerpt: "What broke first.",
+    reading: { title: "A Book", author: "An Author", href: "https://example.com/book" },
+    body: [
+      "Plain **bold** and *italic* with an [external link](https://example.com/x) and an [internal link](about.html).",
+      "Injection attempt <img src=x onerror=\"window.__xss=1\"><script>window.__xss=2</script> and [bad](javascript:window.__xss=3).",
+      { h: "A subheading" },
+      { quote: "A line worth quoting.", cite: "Someone wise" },
+      { list: ["First point", "Second <b>point</b>"] },
+    ],
+  },
+  {
+    slug: "on-carving",
+    title: "On carving",
+    date: "2026-10-01",
+    tags: ["philosophy"],
+    excerpt: "The statue is created.",
+    body: ["Short post."],
+  },
+];
 
 /**
  * Collect console errors, uncaught page errors, failed requests and HTTP >= 400
@@ -150,6 +192,8 @@ async function smallTapTargets(page, min = 44) {
 
 module.exports = {
   CALENDAR_URL,
+  injectPosts,
+  FIXTURE_POSTS,
   PAGES,
   NAV_ORDER,
   SEL,
