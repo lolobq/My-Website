@@ -1,0 +1,175 @@
+/* Inner pages: Resume (embedded PDF) and Projects (stone tiles over the garden).
+   Loaded after style.css; uses its stone variables (--stone, --stone-grain, --stone-edge,
+   --stone-moss, --stone-clay, --stone-line) and the header nav's font (--display, 600).
+   Text on stone stays --ink, --stone-moss or --stone-clay for AA over the darkest grain. */
+
+/* ───────────── Resume: the PDF first ───────────── */
+.page-resume .page-main { max-width: 1040px; padding-top: calc(var(--header-h) + 20px); padding-bottom: 40px; }
+.resume { gap: 16px; }
+.resume-pdf { display: grid; gap: 14px; scroll-margin-top: calc(var(--header-h) + 12px); }
+.resume-pdf .resume-head { padding: 18px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+.resume-title { min-width: 0; }
+.resume-pdf .resume-head h1 { font-weight: 600; line-height: 1; margin: 0; }
+.page-main .resume-pdf .resume-head .lede { margin: 6px 0 0; font-size: 17px; line-height: 1.4; color: var(--ink); }
+.resume-pdf .resume-actions .btn { min-height: 48px; padding: 10px 20px; font-family: var(--display); font-weight: 600; font-size: 18px; letter-spacing: 0.3px; text-transform: none; justify-content: center; }
+.resume-pdf .resume-actions .btn-link { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.resume-pdf .resume-actions .btn-link:hover { background: var(--clay-dark); border-color: var(--clay-dark); color: #fff; }
+.resume-pdf .resume-actions .btn:not(.btn-link) { background: var(--paper); }
+.resume-pdf .resume-actions .btn:not(.btn-link):hover { background: var(--ink); color: var(--paper); }
+.resume-pdf .resume-actions .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.resume-frame-slot:empty { display: none; }
+.resume-pdf .resume-frame {
+  display: block;
+  width: 100%;
+  height: max(520px, calc(100vh - var(--header-h) - 172px));
+  border: 0;
+  border-radius: 3px;
+  box-shadow: var(--stone-edge), 0 8px 28px rgba(43, 34, 51, 0.22);
+  padding: 6px;
+  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+}
+
+/* Text version: collapsed under the PDF, the same document markup as before */
+.resume-text { padding: 0; }
+.resume-text > summary {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 48px;
+  padding: 10px 24px;
+  font-family: var(--display); font-weight: 600; font-size: 20px;
+  cursor: pointer;
+  list-style: none;
+}
+.resume-text > summary::-webkit-details-marker { display: none; }
+.resume-text > summary::before {
+  content: ""; width: 0; height: 0;
+  border-style: solid; border-width: 6px 0 6px 9px; border-color: transparent transparent transparent var(--ink);
+  transition: transform 150ms ease;
+}
+.resume-text[open] > summary::before { transform: rotate(90deg); }
+.resume-text > summary:hover { color: var(--stone-clay); }
+.resume-text > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: -6px; }
+.resume-text .resume-doc { margin: 0 12px 12px; background: var(--paper); box-shadow: 0 0 0 1px var(--stone-line); border-radius: 3px; } /* paper, like the PDF it mirrors */
+
+/* Phones and touch screens: no frame, so the buttons are the main event */
+@media (max-width: 767px) {
+  .resume-pdf .resume-head { flex-direction: column; align-items: stretch; padding: 18px; }
+  .resume-pdf .resume-actions { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .resume-pdf .resume-actions .btn { min-height: 52px; font-size: 19px; }
+  .resume-text > summary { padding: 10px 18px; }
+  .resume-text .resume-doc { margin: 0 8px 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .resume-text > summary::before { transition: none; } }
+@media print {
+  .resume-pdf, .resume-text > summary { display: none !important; }
+  .resume-text, .resume-text[open] { padding: 0; background: #fff !important; box-shadow: none !important; }
+  .resume-text::details-content { content-visibility: visible; display: contents; }
+  .resume-text .resume-doc { margin: 0; box-shadow: none !important; }
+}
+
+/* ───────────── Projects: the garden, without the sculptor ───────────── */
+body.page.page-projects { background: #8fc9ea; }
+.page-projects::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: #8fc9ea url("../assets/img/garden-mobile.webp") center top / cover no-repeat;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+@media (min-aspect-ratio: 4/5) {
+  .page-projects::before { background-image: url("../assets/img/garden-desktop.webp"); }
+}
+.page-projects .page-main { max-width: 1120px; padding: calc(var(--header-h) + 22px) 20px 40px; }
+.projects { display: grid; gap: 18px; }
+
+.projects-head { padding: 16px 24px; justify-self: center; text-align: center; max-width: 760px; box-shadow: var(--stone-edge), 0 8px 28px rgba(43, 34, 51, 0.2); }
+.page-main .projects-head h1 { font-weight: 600; line-height: 1; margin: 0; }
+.page-main .projects-head .lede { margin: 6px 0 0; font-size: 17px; line-height: 1.4; color: var(--ink); }
+
+.tiles { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; grid-template-columns: 1fr; }
+@media (min-width: 760px) { .tiles { grid-template-columns: 1fr 1fr; gap: 22px; } }
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 24px 22px;
+  box-shadow: var(--stone-edge), 0 10px 30px rgba(43, 34, 51, 0.24);
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+.tile:hover { transform: translateY(-3px); background-color: var(--stone-light); }
+.tile:focus-within { outline: 2px solid var(--ink); outline-offset: 3px; }
+.tile-title { margin: 0; font-family: var(--display); font-weight: 600; font-size: 30px; line-height: 1.08; }
+.tile-link { text-decoration: none; color: var(--ink); }
+.tile-link:focus-visible { outline: none; }
+.tile-link::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; } /* the whole slab is the target */
+.page-main .tile-meta { margin: 0; font-family: var(--display); font-weight: 700; font-size: 16px; line-height: 1.3; letter-spacing: 0.3px; color: var(--stone-clay); }
+.page-main .tile-line { margin: 4px 0 0; font-family: var(--display); font-weight: 600; font-size: 19px; line-height: 1.38; color: var(--ink); }
+.tile-more { margin-top: auto; align-self: flex-end; font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1; color: var(--stone-moss); transition: transform 160ms ease; }
+.tile:hover .tile-more { transform: translateX(4px); }
+
+.page-main .also { justify-self: center; margin: 0; padding: 10px 20px; font-family: var(--display); font-weight: 600; font-size: 18px; line-height: 1.4; text-align: center; color: var(--ink); }
+.also a { display: inline-block; min-height: 44px; padding: 10px 2px; margin: -10px 0; color: var(--stone-moss); text-underline-offset: 4px; }
+.also a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Entrance, like the home quote: slabs rise in sequence, text types in place */
+.tiles.is-entering .tile { animation: tile-rise 460ms cubic-bezier(0.2, 0.7, 0.3, 1) backwards; animation-delay: calc(var(--i, 0) * 280ms); }
+.tiles.is-entering .tw-rest { visibility: hidden; animation: tw-failsafe 0s 5s forwards; }
+.tiles.is-entering ~ .also { animation: tile-fade 400ms ease 1.5s backwards; }
+@keyframes tile-rise { from { opacity: 0; transform: translateY(22px) scale(0.98); } }
+@keyframes tile-fade { from { opacity: 0; } }
+@keyframes tw-failsafe { to { visibility: visible; } }
+.tw.is-typing .tw-typed::after { /* zero-advance cursor, so it never changes how a line wraps */
+  content: "";
+  display: inline-block;
+  width: 0; height: 0.9em;
+  vertical-align: -0.1em;
+  box-shadow: 0.08em 0 0 0.06em var(--clay);
+}
+
+/* Details panels */
+.project-panel {
+  width: min(820px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.project-panel::backdrop { background: rgba(28, 22, 34, 0.55); }
+.panel-inner { position: relative; padding: 28px 32px 30px; box-shadow: var(--stone-edge), 0 18px 48px rgba(0, 0, 0, 0.35); }
+.panel-close { position: sticky; top: 0; float: right; z-index: 2; min-height: 44px; min-width: 44px; margin: -10px -14px 8px 12px; font-family: var(--display); font-weight: 600; font-size: 17px; letter-spacing: 0.3px; text-transform: none; justify-content: center; }
+.project-panel .case-study { padding: 0; border: 0; }
+.project-panel .case-study h2 { font-weight: 600; margin: 4px 0 10px; }
+.project-panel .item-meta { color: var(--stone-clay); font-weight: 600; }
+.project-panel .case-study h3 { color: var(--stone-moss); font-weight: 600; }
+.project-panel .case-study p { color: var(--ink); }
+.project-panel .links .btn { background: var(--paper); white-space: normal; text-align: left; }
+.project-panel .links .btn:hover { background: var(--ink); color: var(--paper); }
+.project-panel .links .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.project-panel .wb-media { aspect-ratio: 16 / 9; position: relative; overflow: hidden; margin: 6px 0 14px; border-radius: 3px; box-shadow: 0 0 0 1px var(--stone-line); }
+.project-panel .wb-placeholder { background-color: var(--stone-light); }
+body:has(.project-panel[open]) { overflow: hidden; }
+
+@media (max-width: 560px) {
+  .page-projects .page-main { padding: calc(var(--header-h) + 16px) 14px 32px; }
+  .projects { gap: 14px; }
+  .projects-head { padding: 14px 18px; }
+  .page-main .projects-head h1 { font-size: 38px; }
+  .page-main .projects-head .lede { font-size: 16px; }
+  .tiles { gap: 14px; }
+  .tile { padding: 16px 18px 18px; }
+  .tile-title { font-size: 26px; }
+  .page-main .tile-line { font-size: 17.5px; }
+  .panel-inner { padding: 20px 18px 22px; }
+  .panel-close { margin: -6px -6px 8px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tiles.is-entering .tile, .tiles.is-entering ~ .also { animation: none; }
+  .tiles.is-entering .tw-rest { visibility: visible; animation: none; }
+  .tile, .tile-more { transition: none; }
+  .tile:hover { transform: none; }
+}
