@@ -212,6 +212,15 @@
     const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     // Which projects get a tile, in order. Keys are a case study's id or a slug of the title.
     const TILE_KEYS = ["smartcity", "capstone", "stealth-ai-startup", "job-search-agent-mcp-server"];
+    // The picture at the top of each tile. Swap in a real screenshot by changing src (and alt,
+    // if it says something the title doesn't); width/height keep the box from shifting.
+    // The startup stays generic (disclosure rule): no screenshot, logo or name.
+    const TILE_ART = {
+      smartcity: { src: "assets/img/projects/smartcity.svg", alt: "", w: 160, h: 120 },
+      capstone: { src: "assets/img/projects/capstone.svg", alt: "", w: 160, h: 120 },
+      "stealth-ai-startup": { src: "assets/img/projects/stealth-ai-startup.svg", alt: "", w: 160, h: 120 },
+      "job-search-agent-mcp-server": { src: "assets/img/projects/job-search-agent-mcp-server.svg", alt: "", w: 160, h: 120 },
+    };
 
     const items = [
       ...cases.map((c) => ({ kind: "case", key: c.id || slug(c.title), title: c.title, meta: c.tag, line: c.summary, data: c })),
@@ -257,14 +266,35 @@
         </dialog>`;
     };
 
+    const art = (key) => {
+      const a = TILE_ART[key];
+      return a && a.src
+        ? `<div class="tile-art"><img src="${esc(a.src)}" alt="${esc(a.alt || "")}" width="${a.w || 160}" height="${a.h || 120}" decoding="async"></div>`
+        : "";
+    };
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const n = tiles.length;
+    const label = (i) => `Project ${i + 1} of ${n}: ${tiles[i].title}`;
+    // One row: a queue of tiles, one centred, its neighbours peeking. The page itself never scrolls.
     projects.innerHTML = `<div class="projects-head stone"><h1>${esc(P.title || "Projects")}</h1>${lede(P.lede)}</div>
-      <ul class="tiles${reduce ? "" : " is-entering"}">${tiles.map((it, i) => `<li class="tile stone" style="--i:${i}">
-          <h2 class="tile-title"><a class="tile-link" href="#${esc(it.key)}" data-panel="${esc(it.key)}" aria-haspopup="dialog">${tw(it.title)}</a></h2>
-          ${it.meta ? `<p class="tile-meta">${tw(it.meta)}</p>` : ""}
-          ${it.line ? `<p class="tile-line">${tw(it.line)}</p>` : ""}
-          <span class="tile-more" aria-hidden="true">→</span>
-        </li>`).join("")}</ul>
+      <section class="queue" role="region" aria-roledescription="carousel" aria-label="Projects">
+        <div class="queue-viewport">
+          <ul class="tiles${reduce ? "" : " is-entering"}" style="--at:0">${tiles.map((it, i) => `<li class="tile stone${i === 0 ? " is-current" : ""}" style="--i:${i}"${i === 0 ? "" : " inert"}>
+              ${art(it.key)}
+              <h2 class="tile-title"><a class="tile-link" href="#${esc(it.key)}" data-panel="${esc(it.key)}" aria-haspopup="dialog">${tw(it.title)}</a></h2>
+              ${it.meta ? `<p class="tile-meta">${tw(it.meta)}</p>` : ""}
+              ${it.line ? `<p class="tile-line">${tw(it.line)}</p>` : ""}
+              <span class="tile-more" aria-hidden="true">→</span>
+            </li>`).join("")}</ul>
+        </div>
+        ${n > 1 ? `<div class="queue-controls stone">
+          <button class="queue-arrow" type="button" data-step="-1" aria-label="Previous project" aria-disabled="true">←</button>
+          <div class="queue-dots">${tiles.map((it, i) => `<button class="queue-dot" type="button" data-to="${i}" aria-label="${esc(label(i))}"${i === 0 ? ' aria-current="true"' : ""}></button>`).join("")}</div>
+          <span class="queue-count" aria-hidden="true">1 of ${n}</span>
+          <button class="queue-arrow" type="button" data-step="1" aria-label="Next project">→</button>
+        </div>` : ""}
+        <p class="queue-status sr-only" aria-live="polite" aria-atomic="true"></p>
+      </section>
       ${extras.length ? `<p class="also stone">Also exploring: ${extras.map((it) => `<a href="#${esc(it.key)}" data-panel="${esc(it.key)}" aria-haspopup="dialog">${esc(it.title)}</a>`).join(", ")}</p>` : ""}
       ${items.map(panel).join("")}`;
 
@@ -313,6 +343,107 @@
       raf = requestAnimationFrame(tick);
     }
 
+    // The queue: wheel / trackpad (either axis), swipe, arrow keys, the arrow buttons and the dots
+    // all move it one tile. Scroll down or swipe left = next. Only the centred tile is interactive;
+    // the peeking neighbours are inert (clicking one brings it to the centre).
+    const queue = projects.querySelector(".queue");
+    const tileEls = [...list.children];
+    const status = queue.querySelector(".queue-status");
+    const count = queue.querySelector(".queue-count");
+    const dots = [...queue.querySelectorAll(".queue-dot")];
+    const arrows = [...queue.querySelectorAll(".queue-arrow")];
+    let at = 0;
+    const anyOpen = () => !!projects.querySelector("dialog[open]");
+    // Sideways phones are too short for one screen, so the page scrolls there (css/pages.css):
+    // then vertical gestures belong to the page and only horizontal ones move the queue.
+    const pageScrolls = () => document.documentElement.scrollHeight > innerHeight + 1;
+    const go = (i, opts = {}) => {
+      i = Math.max(0, Math.min(n - 1, i));
+      if (i === at) return false;
+      finish();
+      const hadFocus = tileEls[at].contains(document.activeElement);
+      at = i;
+      if (opts.instant) list.classList.add("no-slide");
+      list.style.setProperty("--at", String(i));
+      tileEls.forEach((el, k) => {
+        el.classList.toggle("is-current", k === i);
+        if (k === i) el.removeAttribute("inert");
+        else el.setAttribute("inert", "");
+      });
+      dots.forEach((d, k) => (k === i ? d.setAttribute("aria-current", "true") : d.removeAttribute("aria-current")));
+      arrows.forEach((b) => {
+        const off = (+b.dataset.step < 0 && i === 0) || (+b.dataset.step > 0 && i === n - 1);
+        if (off) b.setAttribute("aria-disabled", "true");
+        else b.removeAttribute("aria-disabled");
+      });
+      if (count) count.textContent = `${i + 1} of ${n}`;
+      if (!opts.quiet) status.textContent = label(i);
+      if (hadFocus) tileEls[i].querySelector(".tile-link").focus({ preventScroll: true });
+      if (opts.instant) { void list.offsetWidth; list.classList.remove("no-slide"); }
+      return true;
+    };
+    const step = (d) => go(at + d);
+    // The viewport clips with overflow:hidden, which can still be scrolled (find-in-page, focus):
+    // keep it at 0 so the transform alone decides what's centred.
+    const vp = queue.querySelector(".queue-viewport");
+    vp.addEventListener("scroll", () => { if (vp.scrollLeft || vp.scrollTop) vp.scrollLeft = vp.scrollTop = 0; });
+    queue.addEventListener("click", (e) => {
+      const b = e.target.closest(".queue-arrow, .queue-dot");
+      if (b) {
+        if (b.getAttribute("aria-disabled") !== "true") (b.dataset.to != null ? go(+b.dataset.to) : step(+b.dataset.step));
+        return;
+      }
+      // Inert neighbours aren't hit targets, so a click on one lands here: use its side.
+      if (e.target.closest(".tile.is-current")) return;
+      const r = tileEls[at].getBoundingClientRect();
+      if (e.clientX < r.left) step(-1);
+      else if (e.clientX > r.right) step(1);
+    });
+    queue.addEventListener("keydown", (e) => {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      const d = { ArrowLeft: -1, PageUp: -1, ArrowRight: 1, PageDown: 1 }[e.key];
+      const to = e.key === "Home" ? 0 : e.key === "End" ? n - 1 : null;
+      if (!d && to === null) return;
+      e.preventDefault();
+      if (to !== null) go(to);
+      else step(d);
+    });
+    // One wheel gesture or trackpad flick = one tile: step once when the gesture's travel passes
+    // a threshold, then ignore the rest of it (including momentum) until it goes quiet.
+    let acc = 0, locked = false, quietT = 0, lastAbs = 0, lockedAt = 0;
+    window.addEventListener("wheel", (e) => {
+      if (e.ctrlKey || anyOpen()) return;
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
+      const dx = e.deltaX * unit, dy = e.deltaY * unit;
+      const d = Math.abs(dx) > Math.abs(dy) ? dx : pageScrolls() ? 0 : dy;
+      const abs = Math.abs(d);
+      clearTimeout(quietT);
+      quietT = setTimeout(() => { locked = false; acc = 0; lastAbs = 0; }, 200);
+      // A fresh flick during momentum shows up as a sharp rise in speed.
+      if (locked && abs > 30 && abs > lastAbs * 2.5 && performance.now() - lockedAt > 350) { locked = false; acc = 0; }
+      lastAbs = abs;
+      if (locked) return;
+      if (acc && Math.sign(acc) !== Math.sign(d)) acc = 0;
+      acc += d;
+      if (Math.abs(acc) >= 40) {
+        step(acc > 0 ? 1 : -1);
+        locked = true; lockedAt = performance.now(); acc = 0;
+      }
+    }, { passive: true });
+    // Touch: a swipe on either axis (the page doesn't scroll, so vertical swipes move the queue too).
+    let t0 = null;
+    queue.addEventListener("touchstart", (e) => {
+      t0 = e.touches.length === 1 && !(window.visualViewport && visualViewport.scale > 1.01) ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+    }, { passive: true });
+    queue.addEventListener("touchend", (e) => {
+      if (!t0 || anyOpen()) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - t0.x, dy = t.clientY - t0.y;
+      t0 = null;
+      const d = Math.abs(dx) > Math.abs(dy) ? dx : pageScrolls() ? 0 : dy;
+      if (Math.abs(d) >= 40) step(d < 0 ? 1 : -1);
+    }, { passive: true });
+
     // Panels: native modal dialogs (focus moves in, Esc closes, the page behind is inert).
     let opener = null;
     const dialogs = [...projects.querySelectorAll("dialog.project-panel")];
@@ -320,6 +451,8 @@
     const openPanel = (key) => {
       const d = byKey.has(key) ? dialogs.find((x) => x.id === key) : null;
       if (!d) return false;
+      const ti = tiles.findIndex((t) => t.key === key);
+      if (ti >= 0) go(ti, { instant: true, quiet: true }); // the queue follows #hash deep links
       dialogs.forEach((o) => { if (o !== d && o.open) o.close(); });
       if (!d.open) { d.showModal(); d.scrollTop = 0; }
       return true;
