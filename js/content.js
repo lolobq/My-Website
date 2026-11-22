@@ -442,7 +442,48 @@ window.CONTACT = {
 };
 
 /*
- * WRITING — blog posts, newest first. { slug, title, date, excerpt, body: [..] }
- * Empty on purpose: the Writing tab stays hidden until a real post exists.
+ * REFLECTIONS — blog posts. The page sorts them newest first by date.
+ * Empty on purpose: the Reflections tab stays hidden until a real post exists.
+ *
+ * Post fields
+ *   slug     short id for the URL: reflections.html?post=my-slug (lowercase, dashes)
+ *   title    the post title (also the browser tab title)
+ *   date     "YYYY-MM-DD"
+ *   tags     ids from TAGS below, e.g. ["tech", "communication"]
+ *   excerpt  one or two sentences for the list and for search/social previews
+ *   reading  optional, for "what I've been reading" posts: { title, author, href }
+ *   body     a list of blocks, in order. Each block is one of:
+ *              "A paragraph. **bold**, *italic* and [link text](https://example.com) work."
+ *              { h: "A subheading" }
+ *              { quote: "The quoted words.", cite: "Who said it" }
+ *              { img: "assets/img/photo.webp", alt: "What the photo shows" }
+ *              { list: ["First point", "Second point"] }
+ *
+ * Example to copy (remove the // marks and put it inside the [ ] below):
+ *
+ * {
+ *   slug: "what-i-learned-shipping",
+ *   title: "What I learned shipping my first agent",
+ *   date: "2026-12-01",
+ *   tags: ["tech", "communication"],
+ *   excerpt: "One sentence that makes someone want to read the rest.",
+ *   reading: { title: "Book title", author: "Author name", href: "https://example.com/book" },
+ *   body: [
+ *     "First paragraph, with **bold**, *italic* and a [link](https://example.com).",
+ *     { h: "A subheading" },
+ *     "Another paragraph.",
+ *     { quote: "A line worth quoting.", cite: "Someone wise" },
+ *     { img: "assets/img/photo.webp", alt: "What the photo shows" },
+ *     { list: ["First point", "Second point", "Third point"] },
+ *   ],
+ * },
  */
 window.POSTS = [];
+
+/* The fixed set of tags. Posts refer to them by id. */
+window.TAGS = [
+  { id: "tech", label: "Tech" },
+  { id: "philosophy", label: "Philosophy" },
+  { id: "health", label: "Health & Wellness" },
+  { id: "communication", label: "Communication" },
+];

@@ -194,17 +194,81 @@ body:has(.project-panel[open]) { overflow: hidden; }
 .page-main > .stone .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
 /* cards inside: their own slabs, raised off the box */
-.page-main > .stone .item-list li,
-.page-main > .stone .post-list a {
+.page-main > .stone .item-list li {
   background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
   box-shadow: var(--stone-edge), 0 6px 18px rgba(43, 34, 51, 0.2);
   border-radius: 3px;
 }
-.page-main > .stone .post-list a:hover { background-color: var(--stone-light); }
-.page-main > .stone .post-list a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .page-main > .stone .yt-block.stone { box-shadow: var(--stone-edge), 0 6px 18px rgba(43, 34, 51, 0.2); }
 .page-main > .stone .talk-media, .page-main > .stone .yt-media { box-shadow: 0 0 0 1px var(--stone-line); }
 .page-main > .stone .about-photo { box-shadow: 0 0 0 1px var(--stone-line), 0 0 0 4px var(--stone-top); }
 @media (max-width: 560px) {
   .page-main > .stone p, .page-main > .stone li { font-size: 18px; }
+}
+
+/* ───────────── Reflections: tag filter, post cards, comfortable reading ───────────── */
+.tag-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
+.page-main > .stone .tag-filter .btn { min-height: 44px; padding: 8px 14px; font-family: var(--display); font-weight: 600; font-size: 17px; letter-spacing: 0.2px; text-transform: none; }
+.page-main > .stone .tag-filter .btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.page-main > .stone .post-list { gap: 16px; }
+.page-main > .stone .post-list > li {
+  padding: 18px 22px 16px;
+  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  box-shadow: var(--stone-edge), 0 6px 18px rgba(43, 34, 51, 0.2);
+  border-radius: 3px;
+}
+.post-card h2 { font-family: var(--display); font-weight: 600; font-size: 28px; line-height: 1.15; margin: 2px 0 6px; }
+.page-main > .stone .post-list a.post-link { display: inline; padding: 0; background: none; box-shadow: none; border-radius: 0; text-decoration: none; }
+.page-main > .stone .post-meta time { font: inherit; letter-spacing: inherit; text-transform: none; color: inherit; }
+.post-link:hover { text-decoration: underline; }
+.post-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.page-main > .stone .post-meta { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.5px; color: var(--stone-clay); }
+.page-main > .stone .post-excerpt { margin: 0 0 4px; max-width: 65ch; }
+.page-main > .stone .post-empty { margin: 8px 0 0; }
+
+.tag-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; padding: 0; }
+.page-main > .stone .tag-chips li { margin: 0; font-size: 15px; line-height: 1; }
+.page-main > .stone a.tag-chip {
+  position: relative;
+  display: inline-block;
+  padding: 6px 10px;
+  font-family: var(--display); font-weight: 700; font-size: 15px; line-height: 1;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--stone-top);
+  box-shadow: inset 0 -2px 0 var(--stone-shadow), 0 0 0 1px var(--stone-line);
+  border-radius: 2px;
+}
+.tag-chip::after { content: ""; position: absolute; inset: -8px -3px; } /* 44px tall hit area */
+.page-main > .stone a.tag-chip:hover { background: var(--ink); color: var(--paper); }
+.tag-chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+.post .back { margin-bottom: 14px; min-height: 44px; }
+.post-head { margin-bottom: 18px; }
+.post-head h1 { margin: 4px 0 2px; line-height: 1.08; }
+.post-body, .reading-card { max-width: 65ch; }
+.page-main > .stone .post-body p, .page-main > .stone .post-body li { font-size: 20px; line-height: 1.6; font-weight: 500; }
+.post-body strong { font-weight: 700; }
+.post-body h2 { font-size: 28px; line-height: 1.2; margin: 28px 0 8px; }
+.post-body ul { padding-left: 22px; }
+.post-body li + li { margin-top: 6px; }
+.post-body a { overflow-wrap: anywhere; }
+.post-quote { margin: 22px 0; padding: 4px 0 4px 18px; border-left: 3px solid var(--stone-line); }
+.post-quote blockquote { margin: 0; }
+.page-main > .stone .post-quote p { font-style: italic; font-size: 22px; margin: 0; }
+.post-quote figcaption { margin-top: 6px; font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 1px; color: var(--stone-clay); }
+.post-quote figcaption::before { content: "— "; }
+.post-img { margin: 22px 0; }
+.post-img img { display: block; width: 100%; height: auto; border-radius: 3px; box-shadow: 0 0 0 1px var(--stone-line); }
+.reading-card { margin: 0 0 22px; padding: 12px 16px; background: var(--stone-top); box-shadow: inset 0 -3px 0 var(--stone-shadow), 0 0 0 1px var(--stone-line); border-radius: 3px; }
+.page-main > .stone .reading-card p { margin: 0; }
+.page-main > .stone .reading-title { font-size: 20px; font-style: italic; }
+.page-main > .stone .reading-author { font-size: 16px; color: var(--stone-moss); }
+@media (max-width: 560px) {
+  .page-main > .stone .tag-filter .btn { font-size: 16px; padding: 8px 11px; }
+  .page-main > .stone .post-list > li { padding: 16px 16px 14px; }
+  .post-card h2 { font-size: 25px; }
+  .page-main > .stone .post-body p, .page-main > .stone .post-body li { font-size: 18.5px; line-height: 1.6; }
+  .post-body h2 { font-size: 25px; }
+  .page-main > .stone .post-quote p { font-size: 20px; }
 }

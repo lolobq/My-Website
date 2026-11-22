@@ -7,25 +7,98 @@
 
   const blog = document.getElementById("reflections");
   if (blog) {
-    const posts = window.POSTS || [];
-    const slug = new URLSearchParams(location.search).get("post");
-    const post = posts.find((p) => p.slug === slug);
+    const TAGS = window.TAGS || [];
+    const tagLabel = (id) => (TAGS.find((t) => t.id === id) || { label: id }).label;
+    const valid = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "");
+    const posts = (window.POSTS || []).slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+    const intro = window.REFLECTIONS || window.WRITING || {};
+    const params = new URLSearchParams(location.search);
+    const post = posts.find((p) => p.slug === params.get("post"));
+    const time = (p) => (valid(p.date) ? `<time datetime="${esc(p.date)}">${fmt(p.date)}</time>` : "");
+
+    // Inline formatting in a paragraph: **bold**, *italic*, [text](url). Everything else is escaped.
+    const safeHref = (u) => (/^(https?:|mailto:|\/|#|[\w.-]+(\/|\.html|$))/i.test(u) && !/^\s*javascript:/i.test(u) ? u : "");
+    const inline = (s) =>
+      esc(s)
+        .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, text, url) => {
+          const href = safeHref(url.replace(/&amp;/g, "&"));
+          if (!href) return text;
+          const ext = /^https?:/i.test(href);
+          return `<a href="${esc(href)}"${ext ? ' target="_blank" rel="noopener"' : ""}>${text}</a>`;
+        })
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+    const block = (b) => {
+      if (typeof b === "string") return `<p>${inline(b)}</p>`;
+      if (!b || typeof b !== "object") return "";
+      if (b.h) return `<h2>${esc(b.h)}</h2>`;
+      if (b.quote) return `<figure class="post-quote"><blockquote><p>${inline(b.quote)}</p></blockquote>${b.cite ? `<figcaption>${esc(b.cite)}</figcaption>` : ""}</figure>`;
+      if (b.img) return `<figure class="post-img"><img src="${esc(b.img)}" alt="${esc(b.alt || "")}" ${(window.Media && window.Media.attrs(b.img)) || ""} loading="lazy" decoding="async"></figure>`;
+      if (Array.isArray(b.list)) return `<ul>${b.list.map((li) => `<li>${inline(li)}</li>`).join("")}</ul>`;
+      return "";
+    };
+    // Reading time from every word in the body, at ~220 words a minute.
+    const words = (p) => (p.body || []).map((b) => (typeof b === "string" ? b : [b.h, b.quote, ...(b.list || [])].filter(Boolean).join(" "))).join(" ").split(/\s+/).filter(Boolean).length;
+    const minutes = (p) => `${Math.max(1, Math.round(words(p) / 220))} min read`;
+    const chips = (p) => ((p.tags || []).length
+      ? `<ul class="tag-chips" aria-label="Tags">${p.tags.map((t) => `<li><a class="tag-chip" href="reflections.html?tag=${encodeURIComponent(t)}">${esc(tagLabel(t))}</a></li>`).join("")}</ul>`
+      : "");
+    const setMeta = (text) => {
+      if (!text) return;
+      ["meta[name='description']", "meta[property='og:description']"].forEach((sel) => { const m = document.querySelector(sel); if (m) m.setAttribute("content", text); });
+    };
+
     if (post) {
-      document.title = `${post.title} · Writing`;
+      document.title = `${post.title} · Reflections`;
+      const og = document.querySelector("meta[property='og:title']");
+      if (og) og.setAttribute("content", document.title);
+      setMeta(post.excerpt);
+      const r = post.reading;
       blog.innerHTML = `<article class="post">
-        <a class="btn back" href="reflections.html">← All writing</a>
-        <time datetime="${esc(post.date)}">${fmt(post.date)}</time>
-        <h1>${esc(post.title)}</h1>
-        ${(post.body || []).map((p) => `<p>${esc(p)}</p>`).join("")}
+        <a class="btn back" href="reflections.html">← All reflections</a>
+        <header class="post-head">
+          <p class="post-meta">${[time(post), minutes(post)].filter(Boolean).join(" · ")}</p>
+          <h1>${esc(post.title)}</h1>
+          ${chips(post)}
+        </header>
+        ${r && r.title ? `<aside class="reading-card" aria-label="What I've been reading">
+            <p class="reading-title">${r.href ? `<a href="${esc(safeHref(r.href) || "#")}" target="_blank" rel="noopener">${esc(r.title)}</a>` : esc(r.title)}</p>
+            ${r.author ? `<p class="reading-author">${esc(r.author)}</p>` : ""}
+          </aside>` : ""}
+        <div class="post-body">${(post.body || []).map(block).join("")}</div>
       </article>`;
     } else {
-      blog.innerHTML = `<h1>Writing</h1>
-        ${window.WRITING && window.WRITING.lede ? `<p class="lede">${esc(window.WRITING.lede)}</p>` : ""}
-        <ul class="post-list">${posts
-          .map((p) => `<li><a href="reflections.html?post=${encodeURIComponent(p.slug)}">
-            <time datetime="${esc(p.date)}">${fmt(p.date)}</time>
-            <h2>${esc(p.title)}</h2><p>${esc(p.excerpt || "")}</p></a></li>`)
-          .join("")}</ul>`;
+      // List with a tag filter. ?tag=philosophy deep links to a filtered view; back/forward work.
+      blog.innerHTML = `<h1>${esc(intro.title || "Reflections")}</h1>
+        ${intro.lede ? `<p class="lede">${esc(intro.lede)}</p>` : ""}
+        <div class="tag-filter" role="group" aria-label="Filter by tag">
+          ${[{ id: "", label: "All" }, ...TAGS].map((t) => `<button class="btn" type="button" data-tag="${esc(t.id)}" aria-pressed="false">${esc(t.label)}</button>`).join("")}
+        </div>
+        <div class="post-results" aria-live="polite"></div>`;
+      const results = blog.querySelector(".post-results");
+      const btns = [...blog.querySelectorAll(".tag-filter .btn")];
+      const current = () => { const t = new URLSearchParams(location.search).get("tag") || ""; return TAGS.some((x) => x.id === t) ? t : ""; };
+      const render = () => {
+        const tag = current();
+        btns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tag === tag)));
+        const shown = tag ? posts.filter((p) => (p.tags || []).includes(tag)) : posts;
+        results.innerHTML = shown.length
+          ? `<ul class="post-list">${shown.map((p) => `<li><article class="post-card">
+              <p class="post-meta">${[time(p), minutes(p)].filter(Boolean).join(" · ")}</p>
+              <h2><a class="post-link" href="reflections.html?post=${encodeURIComponent(p.slug)}">${esc(p.title)}</a></h2>
+              ${p.excerpt ? `<p class="post-excerpt">${esc(p.excerpt)}</p>` : ""}
+              ${chips(p)}
+            </article></li>`).join("")}</ul>`
+          : `<p class="post-empty">${tag ? `Nothing tagged ${esc(tagLabel(tag))} yet. <a href="reflections.html">See all reflections</a>.` : "No reflections yet. Check back soon."}</p>`;
+      };
+      btns.forEach((b) => b.addEventListener("click", () => {
+        if (b.dataset.tag === current()) return;
+        const url = b.dataset.tag ? `reflections.html?tag=${encodeURIComponent(b.dataset.tag)}` : "reflections.html";
+        history.pushState(null, "", url);
+        render();
+      }));
+      window.addEventListener("popstate", render);
+      render();
     }
   }
 

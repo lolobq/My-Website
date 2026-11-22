@@ -90,13 +90,13 @@
   const mailto =
     `mailto:${S.email}` + (S.emailSubject ? `?subject=${encodeURIComponent(S.emailSubject)}` : "");
 
-  // Writing only shows once a post exists.
+  // Reflections only shows once a post exists.
   const hasPosts = Array.isArray(window.POSTS) && window.POSTS.length > 0;
   const buttons = [
     { id: "resume", label: "Resume", href: "resume.html" },
     { id: "projects", label: "Projects", href: "projects.html" },
     { id: "about", label: "About", href: "about.html" },
-    hasPosts && { id: "reflections", label: "Writing", href: "reflections.html" },
+    hasPosts && { id: "reflections", label: "Reflections", href: "reflections.html" },
     { id: "speaking", label: "Speaking", href: "speaking.html" },
     { id: "contact", label: "Let's get coffee", href: "contact.html" },
   ].filter(Boolean);
