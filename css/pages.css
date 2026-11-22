@@ -355,7 +355,10 @@ body:has(.project-panel[open]) { overflow: hidden; }
    The page is exactly one viewport tall: the centred stone card under the header, then a stage that
    takes whatever height is left. The coffee scene (js/coffee.js) stands on the garden floor at the
    bottom of that stage, part of the backdrop, drawn at the largest whole pixel scale that fits (--s,
-   set by coffee.js). If there's no room for a legible scene, coffee.js hides it instead of scrolling. */
+   set by coffee.js). If there's no room for a legible scene, coffee.js hides it instead of scrolling.
+   With the scene shown (.has-scene), the stage is exactly the scene's height and the card grows to
+   fill the rest, so it ends one --coffee-gap above the heads. Its width and type scale with the
+   screen; the content sits centred in it. */
 body.page.page-contact { min-height: 0; }
 .page-contact .page-main {
   display: flex;
@@ -365,26 +368,32 @@ body.page.page-contact { min-height: 0; }
   min-height: 100vh;
   min-height: 100dvh;
   padding: calc(var(--header-h) + clamp(8px, 2.6vh, 28px)) 16px 0;
+  --coffee-gap: clamp(16px, 2.6vh, 28px);
 }
 .page-contact #contact {
   flex: none;
-  width: min(100%, 576px);
-  padding: clamp(14px, 2.4vh, 22px) clamp(16px, 4.5vw, 26px);
+  width: min(100%, clamp(576px, calc(140vh - 480px), 960px));
+  padding: clamp(14px, 3vh, 40px) clamp(16px, 5vw, 56px);
   text-align: center;
+  font-size: clamp(16px, min(4.8vw, 2.5vh), 26px); /* the card's type scale: everything below is in em */
 }
-.page-contact #contact h1 { font-size: clamp(30px, 4.6vh, 35px); line-height: 1.05; margin: 0 0 6px; }
-.page-contact #contact p { font-size: 16px; line-height: 1.4; }
-.page-contact #contact .lede { max-width: 30em; margin: 0 auto 12px; }
+.page-contact .page-main.has-scene #contact { flex: 1 0 auto; display: flex; flex-direction: column; justify-content: center; }
+.page-contact #contact h1 { font-size: clamp(30px, min(8.8vw, 6.4vh), 72px); line-height: 1.05; margin: 0 0 0.35em; }
+.page-contact #contact p { font-size: 1em; line-height: 1.4; }
+.page-contact #contact .lede { max-width: 30em; margin: 0 auto 0.9em; }
 .page-contact .contact-actions, .page-contact .contact-secondary { justify-content: center; }
-.page-contact .contact-actions { margin: 0 0 10px; }
-.page-contact #contact .contact-actions .btn-big { min-height: 44px; padding: 10px 28px; font-size: 14px; letter-spacing: 2.4px; }
-.page-contact #contact .contact-email { margin: 0 auto 12px; font-size: 16px !important; }
-.page-contact #contact .contact-email span { font-size: 16px; }
-.page-contact #contact .contact-email a { font-size: 17px; }
-.page-contact #contact .contact-secondary { gap: 10px; }
-.page-contact #contact .contact-secondary .btn { min-height: 44px; padding: 8px 18px; }
+.page-contact .contact-actions { margin: 0 0 0.8em; }
+.page-contact #contact .contact-actions .btn-big { min-height: max(44px, 2.9em); padding: 0.6em 1.8em; font-size: 0.875em; letter-spacing: 0.15em; }
+.page-contact #contact .contact-email { margin: 0 auto 0.9em; font-size: 1em !important; }
+.page-contact #contact .contact-email span { font-size: 1em; }
+.page-contact #contact .contact-email a { font-size: 1.06em; }
+.page-contact #contact .contact-secondary { gap: 0.6em; }
+.page-contact #contact .contact-secondary .btn { min-height: max(44px, 2.6em); padding: 0.45em 1.1em; font-size: 0.9em; }
+/* In the tall card the lines breathe with the height, so the content fills it rather than floats. */
+.page-contact .page-main.has-scene #contact h1 { margin-bottom: max(0.35em, 1.8vh); }
+.page-contact .page-main.has-scene #contact :is(.lede, .contact-actions, .contact-email) { margin-bottom: max(0.9em, 3.4vh); }
 @media (max-width: 560px) {
-  .page-contact #contact .contact-actions .btn-big { padding: 10px 12px; font-size: 14px; letter-spacing: 1.4px; }
+  .page-contact #contact .contact-actions .btn-big { padding: 10px 12px; font-size: 15px; letter-spacing: 1.4px; }
 }
 /* Short landscape phones: the scene steps aside (below) and the card tightens to fit. */
 @media (max-height: 499px) {
@@ -398,10 +407,13 @@ body.page.page-contact { min-height: 0; }
 
 /* Full-bleed stage (it cancels .page-main's side padding); it clips sideways only, and only the
    scene's outermost gravel columns, never the garden, the figures or the Easter eggs. */
-.coffee-stage { position: relative; flex: 1 1 0; min-height: 0; align-self: stretch; margin: 6px -16px 0; overflow-x: clip; }
-.coffee-scene { position: absolute; left: 50%; bottom: 0; width: calc(96px * var(--s, 3)); margin-left: calc(-48px * var(--s, 3)); aspect-ratio: 96 / 44; }
+.coffee-stage { position: relative; flex: 1 1 0; min-height: 0; align-self: stretch; margin: var(--coffee-gap) -16px 0; overflow-x: clip; }
+.has-scene > .coffee-stage { flex: none; height: calc(35px * var(--s, 3)); }
+/* The scene box is 96 x 35 logical px, from the top of the heads down. The 96 x 44 canvas overhangs
+   it upward by its 9 empty rows (nothing is drawn there), and lets clicks through to the card. */
+.coffee-scene { position: absolute; left: 50%; bottom: 0; width: calc(96px * var(--s, 3)); margin-left: calc(-48px * var(--s, 3)); aspect-ratio: 96 / 35; }
 @media (max-height: 499px) { .coffee-stage { display: none; } }
-.coffee-scene canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+.coffee-scene canvas { position: absolute; left: 0; bottom: 0; display: block; width: 100%; height: calc(100% * 44 / 35); pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges; }
 .coffee-egg {
   position: absolute;
   padding: 0; margin: 0; border: 0;
@@ -415,7 +427,7 @@ body.page.page-contact { min-height: 0; }
   position: absolute;
   margin: 0;
   padding: 6px 12px;
-  transform: translate(-50%, -100%);
+  transform: translate(0, -50%);
   font-family: var(--display); font-weight: 700; font-size: 18px; line-height: 1.1; white-space: nowrap;
   color: var(--ink);
   background: var(--paper);
@@ -425,13 +437,13 @@ body.page.page-contact { min-height: 0; }
   animation: bubble-pop 220ms steps(3) backwards;
 }
 .coffee-bubble::after { /* pixel tail toward the statue */
-  content: ""; position: absolute; left: 50%; top: 100%;
-  width: 6px; height: 6px; margin-top: 2px;
+  content: ""; position: absolute; right: 100%; top: 50%;
+  width: 6px; height: 6px; margin: -3px 2px 0 0;
   background: var(--paper);
   box-shadow: 0 0 0 2px var(--ink);
 }
 .coffee-bubble:empty { visibility: hidden; animation: none; }
-@keyframes bubble-pop { from { opacity: 0; transform: translate(-50%, -80%) scale(0.6); } }
+@keyframes bubble-pop { from { opacity: 0; transform: translate(-20%, -50%) scale(0.6); } }
 @media (max-width: 560px) { .coffee-bubble { font-size: 15px; padding: 4px 9px; } }
 @media (prefers-reduced-motion: reduce) { .coffee-bubble { animation: none; } }
 @media print { .coffee-stage, .coffee-scene { display: none; } }

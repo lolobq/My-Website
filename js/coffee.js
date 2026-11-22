@@ -103,6 +103,10 @@
   const R_CUP = { x: 51, y: TABLE.y - 4 };
   const HEART = [".##.##.", "#######", "#######", ".#####.", "..###..", "...#..."];
   const HEART_X = 44, HEART_Y = 14;
+  // Nothing is ever drawn above the heads' outline (row OY - 1), so the scene box is rows TOP..H-1
+  // only (the canvas overhangs it by those empty rows, css/pages.css): the scene's top edge is the
+  // top of the heads, and the card can sit just above it. Eggs and the bubble are placed in that box.
+  const TOP = OY - 1, VIS_H = H - TOP;
 
   // ───────────── DOM ─────────────
   const wrap = document.createElement("div");
@@ -117,15 +121,15 @@
     b.type = "button";
     b.className = "coffee-egg";
     b.setAttribute("aria-label", label);
-    Object.assign(b.style, { left: pct(x, W), top: pct(y, H), width: pct(w, W), height: pct(h, H) });
+    Object.assign(b.style, { left: pct(x, W), top: pct(y - TOP, VIS_H), width: pct(w, W), height: pct(h, VIS_H) });
     return b;
   };
   const statueBtn = egg("Give the statue a sip of coffee", RX + 1, OY - 1, GW - 1, SEAT_H + 1);
-  const steamBtn = egg("Swirl the steam (try three times)", 40, 4, 16, 20);
+  const steamBtn = egg("Swirl the steam (try three times)", 40, TOP, 16, 15); // the steam, the heart and the cups
   const bubble = document.createElement("p");
   bubble.className = "coffee-bubble";
   bubble.setAttribute("aria-live", "polite");
-  Object.assign(bubble.style, { left: pct(RX + 9, W), top: pct(OY - 2, H) });
+  Object.assign(bubble.style, { left: pct(RX + GW + 1, W), top: pct(OY + 3 - TOP, VIS_H) }); // beside the statue's head
   wrap.append(canvas, steamBtn, statueBtn, bubble);
   // The stage is the space left under the card (css/pages.css); the scene stands at its bottom.
   const stage = document.createElement("div");
@@ -133,22 +137,35 @@
   stage.append(wrap);
   contact.after(stage);
 
-  // ───────────── size: the largest whole pixel scale that fits the stage ─────────────
+  // ───────────── size: the largest whole pixel scale that fits under the card ─────────────
   // At least 3x, so both Easter eggs stay 44px+ tap targets; below that the scene hides (no scroll).
-  // At most 6x, about the card's width, so the scene stays backdrop. Width fits the drawn garden
-  // (columns 4-91); the outer columns are only the gravel's frayed edge, so the stage may clip them.
+  // At most 6x, so the scene stays backdrop. Width fits the drawn garden (columns 4-91); the outer
+  // columns are only the gravel's frayed edge, so the stage may clip them. Height: the card's natural
+  // height, the gap and the scene must fit the page; then the card grows to fill the rest, so its
+  // bottom sits one gap above the heads (.has-scene in css/pages.css).
   const MIN_S = 3, MAX_S = 6, DRAWN_W = 88;
-  let scale = 0;
+  const main = contact.parentElement;
+  let scale = -1; // unset, so the first fit always applies (and hides the scene if there is no room)
   function fit() {
-    const s = Math.min(MAX_S, Math.floor(Math.min(stage.clientWidth / DRAWN_W, stage.clientHeight / H)));
+    let s = 0;
+    if (getComputedStyle(stage).display !== "none") {
+      const cs = getComputedStyle(main);
+      const room = main.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      contact.style.flexGrow = "0";
+      const card = contact.offsetHeight;
+      contact.style.flexGrow = "";
+      const gap = parseFloat(getComputedStyle(stage).marginTop) || 0;
+      s = Math.min(MAX_S, Math.floor(stage.clientWidth / DRAWN_W), Math.floor((room - card - gap) / VIS_H));
+    }
     const next = s >= MIN_S ? s : 0;
     if (next === scale) return;
     scale = next;
     wrap.hidden = !scale;
-    if (scale) wrap.style.setProperty("--s", String(scale));
+    main.classList.toggle("has-scene", !!scale);
+    if (scale) { wrap.style.setProperty("--s", String(scale)); stage.style.setProperty("--s", String(scale)); }
   }
   fit(); // before first paint, so the scene never resizes after it's shown
-  if ("ResizeObserver" in window) new ResizeObserver(fit).observe(stage);
+  if ("ResizeObserver" in window) { const ro = new ResizeObserver(fit); ro.observe(main); ro.observe(contact); }
   else addEventListener("resize", fit);
 
   // ───────────── state ─────────────
