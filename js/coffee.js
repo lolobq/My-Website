@@ -151,9 +151,13 @@
     if (getComputedStyle(stage).display !== "none") {
       const cs = getComputedStyle(main);
       const room = main.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      // Measure the card as it will be with the scene (.has-scene raises its margins).
+      const had = main.classList.contains("has-scene");
+      main.classList.add("has-scene");
       contact.style.flexGrow = "0";
       const card = contact.offsetHeight;
       contact.style.flexGrow = "";
+      if (!had) main.classList.remove("has-scene");
       const gap = parseFloat(getComputedStyle(stage).marginTop) || 0;
       s = Math.min(MAX_S, Math.floor(stage.clientWidth / DRAWN_W), Math.floor((room - card - gap) / VIS_H));
     }
@@ -165,6 +169,9 @@
     if (scale) { wrap.style.setProperty("--s", String(scale)); stage.style.setProperty("--s", String(scale)); }
   }
   fit(); // before first paint, so the scene never resizes after it's shown
+  // Reveal the card only once the web fonts have swapped in (the CSS failsafe shows it after 3s).
+  const reveal = () => { fit(); main.classList.add("is-fit"); };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(reveal); else reveal();
   if ("ResizeObserver" in window) { const ro = new ResizeObserver(fit); ro.observe(main); ro.observe(contact); }
   else addEventListener("resize", fit);
 
