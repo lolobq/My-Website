@@ -3,3 +3,10 @@
 @font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 500; font-display: swap; src: url(../assets/fonts/cormorant-italic.woff2) format("woff2"); }
 @font-face { font-family: "EB Garamond"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(../assets/fonts/eb-garamond.woff2) format("woff2"); }
 @font-face { font-family: "EB Garamond"; font-style: italic; font-weight: 400; font-display: swap; src: url(../assets/fonts/eb-garamond-italic.woff2) format("woff2"); }
+
+/* Metric-matched fallbacks: Georgia scaled to the Garamonds' widths and line metrics, so the
+   font-display swap doesn't reflow text (layout shift). Measured in Chromium against the woff2s above. */
+@font-face { font-family: "Cormorant Garamond Fallback"; font-weight: 300 500; src: local("Georgia"); size-adjust: 88.45%; ascent-override: 104%; descent-override: 32.8%; line-gap-override: 0%; }
+@font-face { font-family: "Cormorant Garamond Fallback"; font-weight: 600 700; src: local("Georgia Bold"), local("Georgia-Bold"); size-adjust: 76.75%; ascent-override: 119.9%; descent-override: 37.8%; line-gap-override: 0%; }
+@font-face { font-family: "EB Garamond Fallback"; font-weight: 400 500; src: local("Georgia"); size-adjust: 86.59%; ascent-override: 116.6%; descent-override: 34.6%; line-gap-override: 0%; }
+@font-face { font-family: "EB Garamond Fallback"; font-weight: 600 800; src: local("Georgia Bold"), local("Georgia-Bold"); size-adjust: 81.56%; ascent-override: 123.8%; descent-override: 36.8%; line-gap-override: 0%; }

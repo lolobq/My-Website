@@ -3,6 +3,12 @@
    --stone-moss, --stone-clay, --stone-line) and the header nav's font (--display, 600).
    Text on stone is --ink (or --stone-moss), never brown: AA over the darkest grain. */
 
+/* Header height before js/pages.js measures it (it sets --header-h inline). Matches the real
+   header at phone and desktop widths so the page doesn't jump when the measurement lands. */
+:root { --header-h: 88px; }
+@media (max-width: 900px) { :root { --header-h: 104px; } }
+@media (max-width: 560px) { :root { --header-h: 86px; } }
+
 /* ───────────── Resume: the PDF on the garden, nothing else ─────────────
    Desktop with a PDF viewer: one stone frame filling the viewport below the header.
    Phones, touch and no-viewer browsers: one centred stone slab with Open / Download.

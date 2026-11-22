@@ -11,8 +11,8 @@
   --header-h: 104px;
   --fig-top: 50vh;
   --fig-bottom: 60vh;
-  --display: "Cormorant Garamond", "EB Garamond", Garamond, Georgia, serif;
-  --text: "EB Garamond", Garamond, Georgia, serif;
+  --display: "Cormorant Garamond", "Cormorant Garamond Fallback", "EB Garamond", Garamond, Georgia, serif;
+  --text: "EB Garamond", "EB Garamond Fallback", Garamond, Georgia, serif;
   color-scheme: light;
 }
 
