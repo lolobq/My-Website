@@ -1,7 +1,7 @@
 /* Inner pages: Resume (embedded PDF) and Projects (stone tiles over the garden).
    Loaded after style.css; uses its stone variables (--stone, --stone-grain, --stone-edge,
    --stone-moss, --stone-clay, --stone-line) and the header nav's font (--display, 600).
-   Text on stone stays --ink, --stone-moss or --stone-clay for AA over the darkest grain. */
+   Text on stone is --ink (or --stone-moss), never brown: AA over the darkest grain. */
 
 /* ───────────── Resume: the PDF first ───────────── */
 .page-resume .page-main { max-width: 1040px; padding-top: calc(var(--header-h) + 20px); padding-bottom: 40px; }
@@ -46,7 +46,7 @@
   transition: transform 150ms ease;
 }
 .resume-text[open] > summary::before { transform: rotate(90deg); }
-.resume-text > summary:hover { color: var(--stone-clay); }
+.resume-text > summary:hover { text-decoration: underline; text-underline-offset: 4px; }
 .resume-text > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: -6px; }
 .resume-text .resume-doc { margin: 0 12px 12px; background: var(--paper); box-shadow: 0 0 0 1px var(--stone-line); border-radius: 3px; } /* paper, like the PDF it mirrors */
 
@@ -105,13 +105,14 @@ body.page.page-projects, body.page.page-resume { background: #4f377a; }
 .tile-link { text-decoration: none; color: var(--ink); }
 .tile-link:focus-visible { outline: none; }
 .tile-link::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; } /* the whole slab is the target */
-.page-main .tile-meta { margin: 0; font-family: var(--display); font-weight: 700; font-size: 16px; line-height: 1.3; letter-spacing: 0.3px; color: var(--stone-clay); }
+.page-main .tile-meta { margin: 0; font-family: var(--display); font-weight: 700; font-size: 16px; line-height: 1.3; letter-spacing: 0.3px; color: var(--ink); }
 .page-main .tile-line { margin: 4px 0 0; font-family: var(--display); font-weight: 600; font-size: 19px; line-height: 1.38; color: var(--ink); }
 .tile-more { margin-top: auto; align-self: flex-end; font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1; color: var(--stone-moss); transition: transform 160ms ease; }
 .tile:hover .tile-more { transform: translateX(4px); }
 
 .page-main .also { justify-self: center; margin: 0; padding: 10px 20px; font-family: var(--display); font-weight: 600; font-size: 18px; line-height: 1.4; text-align: center; color: var(--ink); }
-.also a { display: inline-block; min-height: 44px; padding: 10px 2px; margin: -10px 0; color: var(--stone-moss); text-underline-offset: 4px; }
+.also a { display: inline-block; min-height: 44px; padding: 10px 2px; margin: -10px 0; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.also a:hover { text-decoration-thickness: 2px; }
 .also a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 /* Entrance, like the home quote: slabs rise in sequence, text types in place */
@@ -145,7 +146,7 @@ body.page.page-projects, body.page.page-resume { background: #4f377a; }
 .panel-close { position: sticky; top: 0; float: right; z-index: 2; min-height: 44px; min-width: 44px; margin: -10px -14px 8px 12px; font-family: var(--display); font-weight: 600; font-size: 17px; letter-spacing: 0.3px; text-transform: none; justify-content: center; }
 .project-panel .case-study { padding: 0; border: 0; }
 .project-panel .case-study h2 { font-weight: 600; margin: 4px 0 10px; }
-.project-panel .item-meta { color: var(--stone-clay); font-weight: 600; }
+.project-panel .item-meta { color: var(--ink); font-weight: 700; }
 .project-panel .case-study h3 { color: var(--stone-moss); font-weight: 600; }
 .project-panel .case-study p { color: var(--ink); }
 .project-panel .links .btn { background: var(--paper); white-space: normal; text-align: left; }
@@ -177,7 +178,7 @@ body:has(.project-panel[open]) { overflow: hidden; }
 
 /* ───────────── About, Speaking, Coffee, Writing: content boxes carved from the same stone ─────────────
    Add class="stone" next to the page's .pixel-box. Type follows the header nav (--display, 600, --ink);
-   accents use --stone-clay / --stone-moss so every line stays AA over the darkest grain. */
+   accents are --ink (by weight) or --stone-moss, never brown, so every line stays AA over the darkest grain. */
 .page-main > .pixel-box.stone {
   background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
   box-shadow: var(--stone-edge), 0 8px 28px rgba(43, 34, 51, 0.22);
@@ -187,9 +188,9 @@ body:has(.project-panel[open]) { overflow: hidden; }
 .page-main > .stone h1, .page-main > .stone h2 { font-family: var(--display); font-weight: 600; color: var(--ink); }
 .page-main > .stone p, .page-main > .stone li { font-family: var(--display); font-weight: 600; font-size: 19px; line-height: 1.5; color: var(--ink); }
 .page-main > .stone .lede, .page-main > .stone .contact-email, .page-main > .stone .contact-email span { color: var(--ink); }
-.page-main > .stone .item-meta, .page-main > .stone time { font-family: var(--display); font-weight: 700; letter-spacing: 1.5px; color: var(--stone-clay); }
+.page-main > .stone .item-meta, .page-main > .stone time { font-family: var(--display); font-weight: 700; letter-spacing: 1.5px; color: var(--ink); }
 .page-main > .stone a:not(.btn) { color: var(--ink); text-underline-offset: 4px; }
-.page-main > .stone a:not(.btn):hover { color: var(--stone-clay); }
+.page-main > .stone a:not(.btn):hover { color: var(--ink); text-decoration-thickness: 2px; }
 .page-main > .stone .btn:not(.btn-big) { background: var(--paper); }
 .page-main > .stone .btn:not(.btn-big):hover { background: var(--ink); color: var(--paper); }
 .page-main > .stone .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
@@ -223,7 +224,7 @@ body:has(.project-panel[open]) { overflow: hidden; }
 .page-main > .stone .post-meta time { font: inherit; letter-spacing: inherit; text-transform: none; color: inherit; }
 .post-link:hover { text-decoration: underline; }
 .post-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-.page-main > .stone .post-meta { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.5px; color: var(--stone-clay); }
+.page-main > .stone .post-meta { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.5px; color: var(--ink); }
 .page-main > .stone .post-excerpt { margin: 0 0 4px; max-width: 65ch; }
 .page-main > .stone .post-empty { margin: 8px 0 0; }
 
@@ -257,7 +258,7 @@ body:has(.project-panel[open]) { overflow: hidden; }
 .post-quote { margin: 22px 0; padding: 4px 0 4px 18px; border-left: 3px solid var(--stone-line); }
 .post-quote blockquote { margin: 0; }
 .page-main > .stone .post-quote p { font-style: italic; font-size: 22px; margin: 0; }
-.post-quote figcaption { margin-top: 6px; font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 1px; color: var(--stone-clay); }
+.post-quote figcaption { margin-top: 6px; font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 1px; color: var(--ink); }
 .post-quote figcaption::before { content: "— "; }
 .post-img { margin: 22px 0; }
 .post-img img { display: block; width: 100%; height: auto; border-radius: 3px; box-shadow: 0 0 0 1px var(--stone-line); }
