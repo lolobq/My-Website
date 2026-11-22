@@ -23,15 +23,49 @@ const EXPECTED_CARDS = 8; // prologue + 6 identity cards + closing card
 const SKIP = /skip to resume/i;
 
 /** Scroll top -> bottom in `steps` increments, recording active card indices at each step. */
-async function walkStory(page, steps = 48) {
-  const trace = [];
-  for (let k = 0; k <= steps; k++) {
-    await scrollToPct(page, (100 * k) / steps);
-    await frames(page, 3);
-    trace.push(await activeCards(page));
-  }
-  return trace;
+/**
+ * Scroll top -> bottom in `steps` increments inside the page (one round trip in total, so it
+ * stays fast when parallel workers compete for CPU). At each step, wait `nFrames` animation
+ * frames, then record what `probe` returns. `probe` is "active" (exposed card indices, same
+ * rule as helpers.activeCards) or "opacity" (per-card effective opacity + whether the story
+ * has started).
+ */
+function walkInPage(page, steps, probe, nFrames = 3) {
+  return page.evaluate(
+    async ({ steps, probe, nFrames, sel }) => {
+      const raf = () => new Promise((r) => requestAnimationFrame(() => r(null)));
+      const cards = () => [...document.querySelectorAll(sel)];
+      const read = () => {
+        if (probe === "active")
+          return cards()
+            .map((el, i) => ({ el, i }))
+            .filter(({ el }) => !el.hasAttribute("inert") && el.getAttribute("aria-hidden") !== "true" && !el.closest("[inert],[aria-hidden='true']"))
+            .map(({ i }) => i);
+        return {
+          started: window.scrollY > 6,
+          op: cards().map((el) => {
+            const cs = getComputedStyle(el);
+            const r = el.getBoundingClientRect();
+            if (cs.visibility === "hidden" || cs.display === "none" || r.bottom <= 0 || r.top >= window.innerHeight) return 0;
+            return parseFloat(cs.opacity);
+          }),
+        };
+      };
+      const out = [];
+      for (let k = 0; k <= steps; k++) {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        window.scrollTo({ top: Math.round((max * k) / steps), behavior: "instant" });
+        for (let f = 0; f < nFrames; f++) await raf();
+        out.push(read());
+      }
+      return out;
+    },
+    { steps, probe, nFrames, sel: SEL.cards }
+  );
 }
+
+/** Active card indices at each of `steps` + 1 scroll positions, top to bottom. */
+const walkStory = (page, steps = 48) => walkInPage(page, steps, "active");
 
 test.describe("home: structure", () => {
   test("quote is a <blockquote> with figcaption attribution", async ({ page }) => {
@@ -140,6 +174,9 @@ test.describe("home: sculptor integration", () => {
 });
 
 test.describe("home: journeys", () => {
+  // The 1440px garden canvas is CPU-heavy; with parallel workers these long journeys need
+  // more than the default 30s budget on desktop. (In isolation they take 3-13s.)
+  test.slow(({ isMobile }) => !isMobile, "desktop canvas under parallel load");
   test("journey 1: quote -> Skip to Resume -> resume PDF region -> Download PDF", async ({ page, request }) => {
     const errs = watchErrors(page);
     await page.goto("/index.html");
@@ -198,9 +235,9 @@ test.describe("home: journeys", () => {
     await expect(cta).toBeInViewport();
     await expect(cta).toHaveAttribute("href", CALENDAR_URL);
 
-    const popupP = context.waitForEvent("page", { timeout: 5_000 }).catch(() => null);
-    await cta.click();
-    const popup = await popupP;
+    // The CTA opens in a new tab when target=_blank; wait for that tab without a short race.
+    const newTab = (await cta.getAttribute("target")) === "_blank";
+    const [popup] = await Promise.all([newTab ? context.waitForEvent("page") : Promise.resolve(null), cta.click()]);
     if (popup) {
       await popup.waitForLoadState();
       expect(popup.url()).toBe(CALENDAR_URL);
@@ -392,28 +429,12 @@ test.describe("home: sunset is the default on every load", () => {
 });
 
 test.describe("home: scroll-tied story cards", () => {
-  /** Per-card effective opacity (0 if visibility hidden or off-screen). */
-  const opacities = (page) =>
-    page.$$eval(SEL.cards, (els) =>
-      els.map((el) => {
-        const cs = getComputedStyle(el);
-        const r = el.getBoundingClientRect();
-        if (cs.visibility === "hidden" || cs.display === "none" || r.bottom <= 0 || r.top >= window.innerHeight) return 0;
-        return parseFloat(cs.opacity);
-      })
-    );
-
+  test.slow(({ isMobile }) => !isMobile, "desktop canvas under parallel load");
   test("opacity follows scroll continuously and there is no long empty stretch", async ({ page }) => {
     await page.goto("/index.html");
     await page.waitForLoadState("networkidle");
     const STEPS = 120;
-    const rows = [];
-    for (let k = 0; k <= STEPS; k++) {
-      await scrollToPct(page, (100 * k) / STEPS);
-      await frames(page, 2);
-      const started = await page.evaluate(() => window.scrollY > 6);
-      rows.push({ k, started, op: await opacities(page) });
-    }
+    const rows = (await walkInPage(page, STEPS, "opacity", 2)).map((r, k) => ({ k, ...r }));
     const story = rows.filter((r) => r.started);
     const empty = story.filter((r) => Math.max(...r.op) < 0.05).map((r) => r.k);
     expect(empty.length, `scroll steps (of ${story.length}) with no visible card: ${empty.join(",")}`).toBeLessThanOrEqual(1);
