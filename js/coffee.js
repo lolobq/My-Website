@@ -127,7 +127,29 @@
   bubble.setAttribute("aria-live", "polite");
   Object.assign(bubble.style, { left: pct(RX + 9, W), top: pct(OY - 2, H) });
   wrap.append(canvas, steamBtn, statueBtn, bubble);
-  contact.after(wrap);
+  // The stage is the space left under the card (css/pages.css); the scene stands at its bottom.
+  const stage = document.createElement("div");
+  stage.className = "coffee-stage";
+  stage.append(wrap);
+  contact.after(stage);
+
+  // ───────────── size: the largest whole pixel scale that fits the stage ─────────────
+  // At least 3x, so both Easter eggs stay 44px+ tap targets; below that the scene hides (no scroll).
+  // At most 6x, about the card's width, so the scene stays backdrop. Width fits the drawn garden
+  // (columns 4-91); the outer columns are only the gravel's frayed edge, so the stage may clip them.
+  const MIN_S = 3, MAX_S = 6, DRAWN_W = 88;
+  let scale = 0;
+  function fit() {
+    const s = Math.min(MAX_S, Math.floor(Math.min(stage.clientWidth / DRAWN_W, stage.clientHeight / H)));
+    const next = s >= MIN_S ? s : 0;
+    if (next === scale) return;
+    scale = next;
+    wrap.hidden = !scale;
+    if (scale) wrap.style.setProperty("--s", String(scale));
+  }
+  fit(); // before first paint, so the scene never resizes after it's shown
+  if ("ResizeObserver" in window) new ResizeObserver(fit).observe(stage);
+  else addEventListener("resize", fit);
 
   // ───────────── state ─────────────
   let ctx = null, base = null;
@@ -158,30 +180,39 @@
     base = document.createElement("canvas");
     base.width = W; base.height = H;
     const g = base.getContext("2d");
-    // a clipped box hedge behind the table, so steam and stone read against green
-    for (let x = 5; x < W - 5; x++) {
-      const end = Math.min(x - 5, W - 6 - x);
-      const top = 9 + Math.round(1.6 * Math.sin(x * 0.42) + 1.2 * Math.sin(x * 0.17 + 1)) + (end < 4 ? 4 - end : 0);
+    // a box hedge behind the table, grown in rounded clumps like the garden's own, so the steam
+    // and the stone figures read against green; it rises in the middle and tapers to both ends
+    const CLUMPS = [[18, 24], [27, 18], [37, 13], [48, 11], [59, 13], [69, 18], [78, 24]].map(([cx, top]) => [cx, top + 8]);
+    const CR = 8;
+    for (let x = 10; x <= 86; x++) {
+      let top = 99;
+      for (const [cx, cy] of CLUMPS) if (Math.abs(x - cx) <= CR) top = Math.min(top, cy - Math.round(Math.sqrt(CR * CR - (x - cx) ** 2)));
       for (let y = top; y < 37; y++) {
+        // shade from the clump this pixel belongs to: lit on its upper left, shaded where clumps meet
+        let lit = 0, crease = false;
+        for (const [cx, cy] of CLUMPS) {
+          const dx = x - cx, dy = y - cy, d = Math.sqrt(dx * dx + dy * dy);
+          if (d > CR + 0.5) continue;
+          if (dy < 0) { lit = Math.max(lit, (-dx - dy) / CR); if (d > CR - 1.2 && dx > 0) crease = true; }
+        }
         const n = hash(x, y, 21);
-        let c = n < 0.22 ? G.boxDark : n > 0.9 ? G.boxLight : G.box;
-        if (y === top) c = G.boxLight;
-        else if (y === top + 1 && n < 0.5) c = G.boxLight;
-        if (end === 0 || y >= 35) c = G.boxDark;
+        let c = n < 0.2 ? G.boxDark : G.box;
+        if (y === top || (y === top + 1 && n < 0.45) || (lit > 0.75 && n > 0.55)) c = G.boxLight;
+        else if (crease && y > top + 1 && n < 0.7) c = G.boxDark;
+        if (y >= 35) c = n < 0.6 ? G.boxDark : G.box;
         px(g, x, y, c);
       }
     }
-    // garden floor: a gravel terrace edged with grass, tapering at the ends
-    for (let y = 37; y < H; y++) {
-      const inset = Math.max(0, 40 - y) * 3 + 2;
-      for (let x = inset; x < W - inset; x++) {
-        const edge = x < inset + 2 || x >= W - inset - 2 || y === 37;
-        const n = hash(x, y, 11);
-        const c = edge ? (n < 0.3 ? G.grassDark : n > 0.8 ? G.grassLight : G.grass)
-          : y === H - 1 ? G.gravelDark : n < 0.18 ? G.gravel2 : n > 0.9 ? G.gravelLight : n < 0.24 ? G.gravelDark : G.gravel;
-        px(g, x, y, c);
+    // garden floor: a soft oval of gravel that frays into the garden's own gravel, no hard edge
+    for (let y = 36; y < H; y++)
+      for (let x = 0; x < W; x++) {
+        const e = ((x - 48) / 48) ** 2 + ((y - 40.5) / 4.5) ** 2, n = hash(x, y, 11);
+        if (e > 1 || (e > 0.72 && n < (e - 0.72) * 2.6)) continue;
+        const c = y === 36 ? (x >= 12 && x <= 84 && n < 0.55 ? G.grassDark : null) // grass at the hedge's foot
+          : e > 0.8 ? (n < 0.5 ? G.gravelDark : G.gravel2)
+          : n < 0.18 ? G.gravel2 : n > 0.9 ? G.gravelLight : n < 0.24 ? G.gravelDark : G.gravel;
+        if (c) px(g, x, y, c);
       }
-    }
     // soft shadow under the table and seats
     g.fillStyle = "rgba(58,51,44,0.18)";
     g.fillRect(26, 39, 44, 1); g.fillRect(30, 40, 36, 1);
