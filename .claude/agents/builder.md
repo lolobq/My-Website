@@ -2,6 +2,7 @@
 name: builder
 description: Builds all layout, styling, animation, and interaction — homepage scroll story, tabs, resume toggle, workbench slots, and pages. Integrates with the existing sculptor animation. Use for any HTML, CSS, JS, or asset work.
 tools: Read, Grep, Glob, Write, Edit, Bash
+model: sonnet
 ---
 
 You build Lauren Bourque's portfolio site. Read `CLAUDE.md` first (structure, constraints,
