@@ -294,28 +294,62 @@ test.describe("projects", () => {
   });
 
   test.describe("entrance typing", () => {
+    // Desktop shares the CPU with workers animating 1440px canvases, and round trips can take
+    // ~0.5s, longer than the ~2s entrance. So the page runs on Playwright's fake clock, paused
+    // from the first byte: time (and rAF) only moves through clock.runFor().
+    test.slow(({ isMobile }) => !isMobile, "desktop canvas under parallel load");
     const untyped = (page) => page.$$eval(".tiles .tw-rest", (els) => els.filter((e) => e.textContent).length);
+    const pausedClock = async (page) => {
+      const t0 = new Date("2026-11-20T12:00:00Z");
+      await page.clock.install({ time: t0 });
+      await page.clock.pauseAt(new Date(t0.getTime() + 60_000)); // well ahead (about:blank has no timers)
+    };
 
     for (const how of ["scroll", "key", "tap"]) {
       test(`finishes at once on ${how}`, async ({ page }) => {
+        await pausedClock(page);
         await page.goto("/projects.html");
-        await page.waitForTimeout(150);
-        expect(await untyped(page), "still typing shortly after load").toBeGreaterThan(0);
+        await page.clock.runFor(300); // first slab partway through typing
+        expect(await untyped(page), "still typing 300ms in").toBeGreaterThan(0);
+        await expect(page.locator(".tiles")).toHaveClass(/is-entering/);
+        // Read the state inside the event, right after the site's own finish handler (registered
+        // earlier on window, so it runs first), with no clock time passing.
+        const ev = how === "scroll" ? "wheel" : how === "key" ? "keydown" : "pointerdown";
+        await page.evaluate((type) => {
+          const w = /** @type {any} */ (window);
+          w.__finish = new Promise((resolve) =>
+            window.addEventListener(
+              type,
+              () =>
+                resolve({
+                  untyped: [...document.querySelectorAll(".tiles .tw-rest")].filter((e) => e.textContent).length,
+                  entering: document.querySelector(".tiles").classList.contains("is-entering"),
+                }),
+              { once: true, passive: true }
+            )
+          );
+        }, ev);
         if (how === "scroll") await page.mouse.wheel(0, 50);
         else if (how === "key") await page.keyboard.press("Shift");
         else {
           const h = await page.locator(".projects-head h1").boundingBox();
+          expect(h, "heading to tap").not.toBeNull();
           if (h) await page.mouse.click(h.x + 5, h.y + h.height / 2);
         }
-        await expect.poll(() => untyped(page), { timeout: 500 }).toBe(0);
-        await expect(page.locator(".tiles")).not.toHaveClass(/is-entering/);
-        await expect(page.locator("dialog[open]")).toHaveCount(0);
+        const r = await page.evaluate(() => /** @type {any} */ (window).__finish);
+        expect(r, `all text typed and entrance over within the same ${ev} event`).toEqual({ untyped: 0, entering: false });
+        expect(await untyped(page)).toBe(0);
+        await expect(page.locator("dialog[open]"), "tapping the heading opens no dialog").toHaveCount(0);
       });
     }
 
-    test("finishes on its own", async ({ page }) => {
+    test("finishes on its own: partial at 0.5s, done by 3s (fake clock)", async ({ page }) => {
+      await pausedClock(page);
       await page.goto("/projects.html");
-      await expect.poll(() => untyped(page), { timeout: 5_000 }).toBe(0);
+      await page.clock.runFor(500);
+      expect(await untyped(page), "still typing at 0.5s").toBeGreaterThan(0);
+      await page.clock.runFor(2_500);
+      expect(await untyped(page), "all typed by 3s").toBe(0);
       await expect(page.locator(".tiles")).not.toHaveClass(/is-entering/);
     });
 
