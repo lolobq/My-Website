@@ -51,8 +51,8 @@
 }
 
 /* ───────────── Projects and Resume: the sunset garden, without the sculptor ───────────── */
-body.page.page-projects, body.page.page-resume { background: #4f377a; }
-.page-projects::before, .page-resume::before {
+body.page.page-projects, body.page.page-resume, body.page.page-contact { background: #4f377a; }
+.page-projects::before, .page-resume::before, .page-contact::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -62,9 +62,9 @@ body.page.page-projects, body.page.page-resume { background: #4f377a; }
   image-rendering: crisp-edges;
 }
 @media (min-aspect-ratio: 4/5) {
-  .page-projects::before, .page-resume::before { background-image: url("../assets/img/garden-desktop.webp"); }
+  .page-projects::before, .page-resume::before, .page-contact::before { background-image: url("../assets/img/garden-desktop.webp"); }
 }
-@media print { .page-projects::before, .page-resume::before { display: none; } }
+@media print { .page-projects::before, .page-resume::before, .page-contact::before { display: none; } }
 .page-projects .page-main { max-width: 1120px; padding: calc(var(--header-h) + 22px) 20px 40px; }
 .projects { display: grid; gap: 18px; }
 
@@ -258,3 +258,46 @@ body:has(.project-panel[open]) { overflow: hidden; }
   .post-body h2 { font-size: 25px; }
   .page-main > .stone .post-quote p { font-size: 20px; }
 }
+
+/* ───────────── Let's Get Coffee: centred stone card, then the coffee scene (js/coffee.js) ───────────── */
+.page-contact .page-main { max-width: 760px; padding-bottom: 40px; }
+.page-contact #contact { text-align: center; }
+.page-contact #contact .lede { max-width: 34em; margin-left: auto; margin-right: auto; }
+.page-contact .contact-actions, .page-contact .contact-secondary { justify-content: center; }
+.page-contact .contact-email { margin-left: auto; margin-right: auto; }
+
+.coffee-scene { position: relative; margin: 22px auto 0; width: 100%; aspect-ratio: 96 / 44; }
+.coffee-scene canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+.coffee-egg {
+  position: absolute;
+  padding: 0; margin: 0; border: 0;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.coffee-egg:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; box-shadow: inset 0 0 0 2px var(--paper); }
+.coffee-bubble {
+  position: absolute;
+  margin: 0;
+  padding: 6px 12px;
+  transform: translate(-50%, -100%);
+  font-family: var(--display); font-weight: 700; font-size: 18px; line-height: 1.1; white-space: nowrap;
+  color: var(--ink);
+  background: var(--paper);
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px var(--ink), 0 4px 12px rgba(43, 34, 51, 0.25);
+  pointer-events: none;
+  animation: bubble-pop 220ms steps(3) backwards;
+}
+.coffee-bubble::after { /* pixel tail toward the statue */
+  content: ""; position: absolute; left: 50%; top: 100%;
+  width: 6px; height: 6px; margin-top: 2px;
+  background: var(--paper);
+  box-shadow: 0 0 0 2px var(--ink);
+}
+.coffee-bubble:empty { visibility: hidden; animation: none; }
+@keyframes bubble-pop { from { opacity: 0; transform: translate(-50%, -80%) scale(0.6); } }
+@media (max-width: 560px) { .coffee-bubble { font-size: 15px; padding: 4px 9px; } }
+@media (prefers-reduced-motion: reduce) { .coffee-bubble { animation: none; } }
+@media print { .coffee-scene { display: none; } }
