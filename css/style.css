@@ -675,31 +675,47 @@ body.page { background: linear-gradient(180deg, #bcdcef 0%, #e3eff0 45%, #efe9da
   #site-header .actions[data-count="6"] .nav-link { font-size: 12.5px; }
 }
 
-/* ───────────── Stone slab surface: polished marble (warm white, soft grey veins, a gloss) ─────────────
+/* ───────────── Stone slab surface: polished statuary marble (warm ivory, a carved glow, a satin sheen) ─────────────
    Reusable: add class="stone" (and, for buttons, "btn stone"). Text on stone is --ink (or
    --stone-moss), never brown; kickers and tags stand apart by weight and size, not colour.
-   AA: --ink is 12.5:1 on the base and 8.5:1 on the darkest vein (--stone-moss 9.7:1 and 6.7:1). */
+   Like a polished Carrara statue: warm ivory, almost no veins (a few faint grey-blue clouds), brighter
+   and warmer in the middle, shading to warm grey at the edges, one broad soft sheen near the top, and
+   softly bevelled edges (light top/left, warm shade bottom/right) inside a soft darker rim.
+   Variants swap only the first five values:
+     B, creamier and warmer: #f3e9d6, rgba(255, 246, 228, 0.8), rgba(156, 124, 86, 0.24), rgba(150, 112, 72, 0.28), rgba(255, 252, 242, 0.6)
+     C, cooler and whiter:   #f2f1ec, rgba(255, 255, 253, 0.85), rgba(116, 120, 128, 0.2), rgba(108, 112, 120, 0.26), rgba(255, 255, 255, 0.7)
+   AA: --ink is 14:1 at the centre, 11:1 on the darkest pixel under text and 8.7:1 on the darkest bevel
+   pixel (--stone-moss 8.7:1 and 6.8:1); B and C stay above 8.3:1 and 6.5:1. */
 :root {
-  --stone: #ece8e0;
-  --stone-dark: #ddd7cc;
-  --stone-light: #f4f1eb;
-  --stone-top: #faf8f4;
-  --stone-shadow: #cbc4b7;
+  --stone: #f1ebdf;
+  --stone-glow: rgba(255, 250, 240, 0.8);
+  --stone-shade: rgba(146, 124, 98, 0.22);
+  --stone-bevel: rgba(140, 114, 84, 0.26);
+  --stone-sheen: rgba(255, 255, 255, 0.62);
+  --stone-dark: #e3dbcc;
+  --stone-light: #f8f4ec;
+  --stone-top: #fbf8f2;
+  --stone-shadow: #cdc2b0;
   --stone-line: #4a423a;
+  --stone-rim: rgba(84, 70, 54, 0.55);
   --stone-moss: #263d1c;
   --stone-clay: #5e2a14;
-  /* Veins: two diagonal veins that wrap seamlessly over a 600x400 tile (each drawn twice, a
-     wide faint halo under a thin line, so they read soft without a blur filter), plus one branch. */
-  --stone-veins: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400'><defs><path id='a' d='M0 40C200 80 250 300 400 340S560 440 600 440'/><path id='b' d='M0 250C120 262 220 360 330 420S520 640 600 650'/></defs><g fill='none' stroke='%23857b6e' stroke-linecap='round'><g stroke-width='7' stroke-opacity='.07'><use href='%23a'/><use href='%23a' y='-400'/></g><g stroke-width='1.3' stroke-opacity='.26'><use href='%23a'/><use href='%23a' y='-400'/></g><g stroke-width='5' stroke-opacity='.05'><use href='%23b'/><use href='%23b' y='-400'/></g><g stroke-width='.9' stroke-opacity='.2'><use href='%23b'/><use href='%23b' y='-400'/></g><path stroke-width='.8' stroke-opacity='.16' d='M262 190c40 6 70 34 118 40s62 30 96 60'/></g></svg>");
-  /* Gloss: a soft highlight across the top left, fading to a faint shade at the bottom right. */
-  --stone-gloss: linear-gradient(155deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.28) 24%, rgba(255, 255, 255, 0) 48%, rgba(255, 255, 255, 0) 72%, rgba(90, 80, 70, 0.06) 100%);
-  --stone-surface: var(--stone-gloss) 0 0 / 100% 100% no-repeat, var(--stone-veins) 0 0 / 600px 400px repeat, var(--stone);
+  /* Clouds: a few faint, soft grey-blue drifts and one wisp on a large 900x600 tile, kept clear of
+     the tile's edges so it repeats without a seam. Soft from gradient fills and stacked translucent
+     strokes, not a blur filter. */
+  --stone-veins: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='600'><defs><radialGradient id='g'><stop offset='0' stop-color='%23808ea4' stop-opacity='.14'/><stop offset='1' stop-color='%23808ea4' stop-opacity='0'/></radialGradient><path id='w' d='M120 300c80-46 150-14 232-52s150-30 214 8 120 22 200-14'/></defs><g fill='url(%23g)'><ellipse cx='260' cy='120' rx='220' ry='56' transform='rotate(-14 260 120)'/><ellipse cx='640' cy='430' rx='240' ry='64' transform='rotate(-20 640 430)'/><ellipse cx='560' cy='130' rx='120' ry='30' transform='rotate(-6 560 130)'/></g><g fill='none' stroke='%23808ea4' stroke-linecap='round'><use href='%23w' stroke-width='18' stroke-opacity='.025'/><use href='%23w' stroke-width='7' stroke-opacity='.035'/></g></svg>");
+  /* Sheen: one broad, soft satin highlight near the top. */
+  --stone-gloss: radial-gradient(70% 55% at 42% 4%, var(--stone-sheen), rgba(255, 255, 255, 0) 100%);
+  /* Body: the glow under the surface, warm in the middle, rounding off to warm grey at the edges. */
+  --stone-body: radial-gradient(farthest-corner at 50% 44%, var(--stone-glow) 0%, rgba(255, 250, 240, 0) 58%, var(--stone-shade) 100%);
+  --stone-surface: var(--stone-gloss) 0 0 / 100% 100% no-repeat, var(--stone-body) 0 0 / 100% 100% no-repeat, var(--stone-veins) 0 0 / 900px 600px repeat, var(--stone);
   /* Older rules write `var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone)`. --stone-grain is
-     the gloss and vein layers plus a blank last layer that takes that 48px sizing, so those rules
-     paint the same marble as --stone-surface. */
-  --stone-grain: var(--stone-gloss) 0 0 / 100% 100% no-repeat, var(--stone-veins) 0 0 / 600px 400px repeat, linear-gradient(transparent, transparent);
-  /* Edge: crisp 1px highlight on top, a faint shade underneath, a thin dark line, a soft shadow. */
-  --stone-edge: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 1px 0 0 rgba(255, 255, 255, 0.45), inset 0 -2px 0 rgba(140, 128, 112, 0.28), 0 0 0 1px var(--stone-line), 0 2px 5px rgba(43, 34, 51, 0.12);
+     the sheen, body and cloud layers plus a blank last layer that takes that 48px sizing, so those
+     rules paint the same marble as --stone-surface. */
+  --stone-grain: var(--stone-gloss) 0 0 / 100% 100% no-repeat, var(--stone-body) 0 0 / 100% 100% no-repeat, var(--stone-veins) 0 0 / 900px 600px repeat, linear-gradient(transparent, transparent);
+  /* Edge: a carved bevel (soft light on the top and left, warm shade on the bottom and right) inside
+     a soft darker rim that keeps slabs apart from the pixel garden, then a soft shadow. */
+  --stone-edge: inset 1px 1px 0 rgba(255, 255, 255, 0.9), inset 2px 3px 4px -1px rgba(255, 255, 255, 0.55), inset -2px -3px 5px -1px var(--stone-bevel), 0 0 0 1px var(--stone-rim), 0 2px 6px rgba(43, 34, 51, 0.14);
 }
 .stone {
   color: var(--ink);
@@ -712,7 +728,7 @@ body.page { background: linear-gradient(180deg, #bcdcef 0%, #e3eff0 45%, #efe9da
 /* Top bar */
 #site-header .bar.stone, #site-header .bar.stone[class] {
   background: var(--stone-surface);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -2px 0 rgba(140, 128, 112, 0.28), 0 1px 0 var(--stone-line), 0 6px 20px rgba(43, 34, 51, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -3px 5px -1px var(--stone-bevel), 0 1px 0 var(--stone-rim), 0 6px 20px rgba(43, 34, 51, 0.18);
   border-radius: 0;
 }
 #site-header .bar.stone .tagline { color: var(--stone-moss); }
@@ -732,7 +748,7 @@ body.page { background: linear-gradient(180deg, #bcdcef 0%, #e3eff0 45%, #efe9da
   transition: background-color 200ms ease, transform 120ms ease;
 }
 .btn.stone:hover, #dock .btn.stone:hover { color: var(--ink); background-color: var(--stone-light); }
-.btn.stone:active, #dock .btn.stone:active { box-shadow: inset 0 2px 4px rgba(90, 80, 70, 0.28), inset 0 -1px 0 rgba(255, 255, 255, 0.7), 0 0 0 1px var(--stone-line); }
+.btn.stone:active, #dock .btn.stone:active { box-shadow: inset 0 2px 4px rgba(90, 80, 70, 0.28), inset 0 -1px 0 rgba(255, 255, 255, 0.7), 0 0 0 1px var(--stone-rim); }
 .btn.stone:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
 /* ───────────── Skip link (every page) ───────────── */
