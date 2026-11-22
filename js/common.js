@@ -98,7 +98,7 @@
     { id: "about", label: "About", href: "about.html" },
     hasPosts && { id: "reflections", label: "Reflections", href: "reflections.html" },
     { id: "speaking", label: "Speaking", href: "speaking.html" },
-    { id: "contact", label: "Let's get coffee", href: "contact.html" },
+    { id: "contact", label: "Let's Get Coffee", href: "contact.html" },
   ].filter(Boolean);
 
   const header = document.getElementById("site-header");

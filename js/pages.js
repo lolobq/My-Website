@@ -394,14 +394,14 @@
         </section>` : ""}`;
   }
 
-  // Let's get coffee: booking link first, email beneath, no form.
+  // Let's Get Coffee: booking link first, email beneath, no form.
   const contact = document.getElementById("contact");
   if (contact) {
     const C = window.CONTACT || {};
     const primary = S.calendar
       ? `<a class="btn btn-big" href="${esc(S.calendar)}" target="_blank" rel="noopener">${esc(C.calendarLabel || "Google Calendar")} →</a>`
       : `<a class="btn btn-big" href="${mailto}">${esc(S.email)}</a>`;
-    contact.innerHTML = `<h1>${esc(C.title || "Let's get coffee")}</h1>${lede(C.lede)}
+    contact.innerHTML = `<h1>${esc(C.title || "Let's Get Coffee")}</h1>${lede(C.lede)}
       <div class="contact-actions">${primary}</div>
       <p class="contact-email">${C.emailLabel ? `<span>${esc(C.emailLabel)}</span> ` : ""}<a href="${mailto}">${esc(S.email)}</a></p>
       <div class="contact-secondary">

@@ -122,7 +122,7 @@ window.CARDS = [
       "Michelangelo said the statue is discovered. I think it's created, with tools you already carry. My favorite part is creating the statue from the slab of marble.",
       "I'd love to help you create yours. Let's build together.",
     ],
-    cta: { label: "Let's grab coffee", href: "https://calendar.app.google/X2TgfwioqwVjECZS6" },
+    cta: { label: "Let's Grab Coffee", href: "https://calendar.app.google/X2TgfwioqwVjECZS6" },
   },
 ];
 
@@ -432,10 +432,10 @@ window.SPEAKING = {
 };
 
 /*
- * CONTACT ("Let's get coffee") page. Calendar button first, email beneath. No form.
+ * CONTACT ("Let's Get Coffee") page. Calendar button first, email beneath. No form.
  */
 window.CONTACT = {
-  title: "Let's get coffee",
+  title: "Let's Get Coffee",
   lede: "Hiring, building something, or planning an event? Pick a time and let's talk.",
   calendarLabel: "Book a coffee chat",
   emailLabel: "Or email me",
