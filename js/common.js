@@ -90,13 +90,12 @@
   const mailto =
     `mailto:${S.email}` + (S.emailSubject ? `?subject=${encodeURIComponent(S.emailSubject)}` : "");
 
-  // Reflections only shows once a post exists.
-  const hasPosts = Array.isArray(window.POSTS) && window.POSTS.length > 0;
+  // Reflections always shows (Lauren's call); the page has its own empty state.
   const buttons = [
     { id: "resume", label: "Resume", href: "resume.html" },
     { id: "projects", label: "Projects", href: "projects.html" },
     { id: "about", label: "About", href: "about.html" },
-    hasPosts && { id: "reflections", label: "Reflections", href: "reflections.html" },
+    { id: "reflections", label: "Reflections", href: "reflections.html" },
     { id: "speaking", label: "Speaking", href: "speaking.html" },
     { id: "contact", label: "Let's Get Coffee", href: "contact.html" },
   ].filter(Boolean);
