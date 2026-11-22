@@ -115,6 +115,13 @@
     const ul = (arr) => (arr && arr.length ? `<ul>${arr.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>` : "");
     const meta = (...parts) => parts.filter(Boolean).map(esc).join(" · ");
     const pubLink = (p) => (p.href ? `<a href="${esc(p.href)}" target="_blank" rel="noopener">${esc(p.citation)}</a>` : esc(p.citation));
+    // Parts shared by the text version and the phone slabs (one source, two layouts).
+    const roleBody = (e) => `<h3>${esc(e.role)}, ${esc(e.org)}</h3>
+          <p class="doc-meta">${meta(e.location, e.dates)}</p>
+          ${ul(e.bullets)}`;
+    const eduBody = (e) => `<h3>${esc(e.school)}</h3><p class="doc-meta">${meta(e.degree, e.dates, e.note)}</p>`;
+    const skillsList = () => `<ul class="doc-skills">${skills.map((s) => `<li><strong>${esc(s.label)}:</strong> ${(s.items || []).map(esc).join(", ")}</li>`).join("")}</ul>`;
+    const pubsList = () => `<ul>${pubs.map((p) => `<li>${pubLink(p)}</li>`).join("")}</ul>`;
 
     // Document view: a plain, selectable, printable resume.
     const contactBits = [
@@ -130,20 +137,31 @@
       </header>
       ${R.summary ? `<section><h2>Summary</h2><p>${esc(R.summary)}</p></section>` : ""}
       ${exp.length ? `<section><h2>Experience</h2>${exp.map((e) => `<article class="doc-role">
-          <h3>${esc(e.role)}, ${esc(e.org)}</h3>
-          <p class="doc-meta">${meta(e.location, e.dates)}</p>
-          ${ul(e.bullets)}
+          ${roleBody(e)}
         </article>`).join("")}</section>` : ""}
       ${edu.length ? `<section><h2>Education</h2>${edu.map((e) => `<article class="doc-role">
-          <h3>${esc(e.school)}</h3><p class="doc-meta">${meta(e.degree, e.dates, e.note)}</p>
+          ${eduBody(e)}
         </article>`).join("")}</section>` : ""}
-      ${skills.length ? `<section><h2>Skills</h2><ul class="doc-skills">${skills.map((s) => `<li><strong>${esc(s.label)}:</strong> ${(s.items || []).map(esc).join(", ")}</li>`).join("")}</ul></section>` : ""}
+      ${skills.length ? `<section><h2>Skills</h2>${skillsList()}</section>` : ""}
       ${honors.length ? `<section><h2>Honors</h2>${ul(honors)}</section>` : ""}
-      ${pubs.length ? `<section><h2>Publications</h2><ul>${pubs.map((p) => `<li>${pubLink(p)}</li>`).join("")}</ul></section>` : ""}`;
+      ${pubs.length ? `<section><h2>Publications</h2>${pubsList()}</section>` : ""}`;
+
+    // Phones, touch and no-viewer browsers: the highlights as stone slabs under the PDF buttons.
+    // No summary and no honors here (the PDF has both).
+    const slabGroup = (id, title, body) => `<section class="resume-group" aria-labelledby="rs-${id}">
+          <h2 class="resume-kicker stone" id="rs-${id}">${esc(title)}</h2>${body}
+        </section>`;
+    const slabs = [
+      exp.length && slabGroup("experience", "Experience", exp.map((e) => `<article class="resume-slab doc-role stone">${roleBody(e)}</article>`).join("")),
+      skills.length && slabGroup("skills", "Skills", `<div class="resume-slab stone">${skillsList()}</div>`),
+      pubs.length && slabGroup("publications", "Publications", `<div class="resume-slab stone">${pubsList()}</div>`),
+      edu.length && slabGroup("education", "Education", edu.map((e) => `<article class="resume-slab doc-role stone">${eduBody(e)}</article>`).join("")),
+    ].filter(Boolean).join("");
 
     // The PDF is the page: just the garden and the embedded PDF in a stone frame (the viewer's
     // own toolbar downloads and prints). Phones, touch and no-viewer browsers get no frame
-    // (Android shows nothing, iOS only page 1); there one stone slab holds Open / Download.
+    // (Android shows nothing, iOS only page 1); there one stone slab holds Open / Download,
+    // with the highlights below it as slabs (the text version is then aria-hidden).
     // The heading and the HTML text version are visually hidden, for screen readers, search
     // and print (links in it skip the Tab order, so keyboard focus never goes invisible).
     resume.innerHTML = `
@@ -154,11 +172,13 @@
           <a class="btn btn-link" href="${esc(pdf)}" target="_blank" rel="noopener">Open my resume (PDF)</a>
           <a class="btn" href="${esc(pdf)}" download>Download PDF</a>
         </div>
+        ${slabs ? `<div class="resume-slabs">${slabs}</div>` : ""}
       </section>
       <article class="resume-doc sr-only" id="resume-document" aria-label="${esc(R.title || "Resume")}, text version">${documentView}</article>`;
     resume.querySelectorAll("#resume-document a").forEach((a) => a.setAttribute("tabindex", "-1"));
 
     const slot = resume.querySelector(".resume-frame-slot");
+    const textDoc = resume.querySelector("#resume-document");
     const wide = matchMedia("(min-width: 768px) and (hover: hover) and (pointer: fine)");
     const canEmbed = () => navigator.pdfViewerEnabled !== false && wide.matches;
     const placeFrame = () => {
@@ -167,9 +187,15 @@
         slot.innerHTML = `<iframe class="resume-frame" src="${esc(pdf)}#view=FitH&navpanes=0" title="${esc([S.name, R.title || "Resume"].filter(Boolean).join(", "))} (PDF)"></iframe>`;
       } else if (!canEmbed() && has) slot.textContent = "";
       document.body.classList.toggle("has-pdf-frame", !!slot.firstChild);
+      // With the slabs on screen, screen readers get them, not the sr-only text version too.
+      // (Printing shows the text version alone, so it is exposed again while printing.)
+      if (slot.firstChild || !slabs || printing.matches) textDoc.removeAttribute("aria-hidden");
+      else textDoc.setAttribute("aria-hidden", "true");
     };
+    const printing = matchMedia("print");
     placeFrame();
     if (wide.addEventListener) wide.addEventListener("change", placeFrame);
+    if (printing.addEventListener) printing.addEventListener("change", placeFrame);
 
     // Skip to work lands on #document: focus the heading at the top of the PDF region.
     const heading = resume.querySelector("#resume-heading");
