@@ -87,8 +87,9 @@
     if (h >= 17 && h < 20) return "sunset";
     return "night";
   }
-  let timeKey = autoTime();
-  try { const saved = localStorage.getItem("garden-time"); if (TIMES[saved]) timeKey = saved; } catch (e) {}
+  // Every visit to the home page opens at sunset. The toggle changes it for this visit only.
+  const DEFAULT_TIME = "sunset";
+  let timeKey = DEFAULT_TIME;
 
   // ───────────────────────── canvas + layout ─────────────────────────
   const canvas = document.getElementById("scene");
@@ -567,7 +568,6 @@
     const p = max > 0 ? clamp(window.scrollY / max, 0, 1) : 0;
     if (p !== progress) lastScrollAt = performance.now();
     progress = p;
-    updateStory(p);
   }
 
   // ───────────────────────── actors ─────────────────────────
@@ -630,16 +630,18 @@
     const swinging = !done && now - lastScrollAt < 260 && !reduceMotion;
     const frame = swinging ? Math.floor(now / 130) % 2 : 1;
 
-    // hand positions
-    let hy = clamp(L.slabY + targetRow, sy + 8, sy + 23);
-    let ch = { x: L.slabX - 4, y: hy }; // chisel hand
-    let mh = frame === 0 ? { x: ch.x - 5, y: ch.y - 5 } : { x: ch.x - 3, y: ch.y - 1 };
+    // Both hands work out in front of her, over the stone, so the mallet never crosses her head.
+    // The chisel row follows the carving frontier (kept below her chin); the mallet hand stays
+    // at shoulder height or lower, swinging from upright (frame 0) onto the chisel butt (frame 1).
+    const hy = clamp(L.slabY + targetRow, sy + 11, sy + 23);
+    let ch = { x: sx + 19, y: hy }; // chisel hand (fist); butt at x-1, blade at x+1..x+2
+    let mh = frame === 0 ? { x: sx + 16, y: hy + 2 } : { x: sx + 14, y: hy + 3 }; // mallet hand
     if (done) { ch = { x: sx + 11, y: sy + 21 }; mh = { x: sx + 8, y: sy + 22 }; }
 
-    // strike → chips
+    // strike → chips fly off the chisel tip
     if (swinging && frame === 1 && lastStrikeFrame === 0) {
       for (let i = 0; i < 4 + Math.floor(Math.random() * 3); i++)
-        chips.push({ x: ch.x + 4, y: ch.y, vx: 0.1 + Math.random() * 0.6, vy: -0.4 - Math.random() * 0.9,
+        chips.push({ x: ch.x + 3, y: ch.y, vx: 0.1 + Math.random() * 0.6, vy: -0.4 - Math.random() * 0.9,
           c: Sp.STONE[1 + Math.floor(Math.random() * 3)], life: 120 });
     }
     lastStrikeFrame = swinging ? frame : 1;
@@ -650,8 +652,10 @@
     Sp.drawBody(g, sx, sy, { blink });
     // chisel
     if (!done) {
-      rect(g, ch.x + 1, ch.y, 3, 1, "#b8bcc4");
-      px(g, ch.x + 1, ch.y, "#6b4a2b");
+      px(g, ch.x - 1, ch.y, "#6b4a2b"); // butt, where the mallet lands
+      px(g, ch.x + 1, ch.y, "#b8bcc4");
+      px(g, ch.x + 2, ch.y, "#8a8f99"); // edge biting the stone
+      rect(g, ch.x + 1, ch.y + 1, 2, 1, Sp.OUTLINE); // shadow line so the steel reads on stone
     } else {
       rect(g, ch.x, ch.y + 1, 1, 3, "#b8bcc4");
     }
@@ -659,9 +663,17 @@
     arm(g, sx + 7, sy + 15, mh.x, mh.y, pal.D, pal.S);
     // mallet
     if (!done) {
-      line(g, mh.x, mh.y + 2, mh.x, mh.y - 1, (x, y) => px(g, x, y, G.woodDark));
-      rect(g, mh.x - 1, mh.y - 3, 4, 2, G.wood);
-      rect(g, mh.x - 1, mh.y - 2, 4, 1, G.woodDark);
+      if (frame === 0) {
+        // raised upright above the fist
+        rect(g, mh.x, mh.y - 2, 1, 2, G.woodDark);
+        rect(g, mh.x - 1, mh.y - 4, 3, 2, G.wood);
+        rect(g, mh.x - 1, mh.y - 3, 3, 1, G.woodDark);
+      } else {
+        // swung down and out: the head's face meets the chisel butt
+        px(g, mh.x + 1, mh.y - 1, G.woodDark);
+        rect(g, mh.x + 2, mh.y - 4, 2, 3, G.wood);
+        rect(g, mh.x + 3, mh.y - 4, 1, 3, G.woodDark);
+      }
     } else {
       rect(g, mh.x, mh.y + 1, 1, 3, G.woodDark);
       rect(g, mh.x - 1, mh.y + 4, 3, 2, G.wood);
@@ -921,6 +933,7 @@
     const targetRow = drawSlab(actx, p);
     drawSculptor(actx, now, p, targetRow);
     updateChips();
+    updateStory(progress); // cards follow the raw scroll position every frame
     for (const c of chips) px(actx, Math.round(c.x), Math.round(c.y), c.c);
     updateButterflies(now);
     if (timeKey !== "night") for (const b of butterflies) drawButterfly(actx, b, now);
@@ -962,7 +975,13 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   const mailto = `mailto:${S.email}` + (S.emailSubject ? `?subject=${encodeURIComponent(S.emailSubject)}` : "");
 
-  spacer.style.height = `${N * 130 + 30}vh`;
+  // Story timeline, in card units: card i enters over [i - ENTER, i], rests, then leaves over
+  // [i + REST, i + REST + LEAVE] while card i + 1 is already entering (they overlap slightly).
+  // The whole story spans STORY_UNITS; each unit is CARD_VH of scroll.
+  const ENTER = 0.4, REST = 0.45, LEAVE = 0.35, CARD_VH = 65;
+  const STORY_UNITS = N - 1 + 0.3 + ENTER; // last card gets a short rest at the very end
+  const SLIDE_VH = 22; // how far a card travels while entering or leaving
+  spacer.style.height = `${STORY_UNITS * CARD_VH + 100}vh`;
 
   const isExternal = (href) => /^https?:\/\//i.test(href || "");
   const M = window.Media || { ratio: () => 0.75, attrs: () => "" };
@@ -975,7 +994,7 @@
 
   const cardEls = CARDS.map((c, i) => {
     const el = document.createElement("article");
-    el.className = `card pixel-box ${i % 2 === 0 ? "side-left" : "side-right"}${c.cta ? " card-cta" : ""}${(c.images || []).length ? " has-gallery" : ""}`;
+    el.className = `card pixel-box stone ${i % 2 === 0 ? "side-left" : "side-right"}${c.cta ? " card-cta" : ""}${(c.images || []).length ? " has-gallery" : ""}`;
     el.setAttribute("aria-hidden", "true");
     el.inert = true;
     // Each photo sits in a box with its own fixed aspect ratio; together they fill one row.
@@ -1004,33 +1023,41 @@
     return el;
   });
 
+  const easeOut = (t) => 1 - (1 - t) * (1 - t);
+  const easeIn = (t) => t * t;
+  let storyP = -1, storyStarted = null;
   function updateStory(p) {
     const started = window.scrollY > 6;
+    if (p === storyP && started === storyStarted) return;
+    storyP = p; storyStarted = started;
     quote.classList.toggle("is-gone", started);
     if (homeActions) homeActions.classList.toggle("is-gone", started);
     else hint.classList.toggle("is-gone", started);
+    const t = -ENTER + p * STORY_UNITS; // position on the story timeline
     cardEls.forEach((el, i) => {
-      const q = p * (N - 0.2) - i - 0.2; // each card: enter -0.2..0.2, rest, exit 0.8..1.2 (overlaps the next one entering)
-      // rises from below the screen, rests beside the sculptor, then exits upward
-      let y; // in vh
-      if (q <= -0.2) y = 100;
-      else if (q < 0.2) y = 100 * (1 - ease((q + 0.2) / 0.4));
-      else if (q < 0.8 || i === N - 1) y = 0;
-      else if (q < 1.2) y = -100 * ease((q - 0.8) / 0.4);
-      else y = -100;
+      const q = t - i;
+      // k: 0 hidden below → 1 at rest; then 1 → 0 while leaving upward. Continuous in q.
+      let k, dir;
+      if (q <= -ENTER) { k = 0; dir = 1; }
+      else if (q < 0) { k = easeOut((q + ENTER) / ENTER); dir = 1; }
+      else if (q <= REST || i === N - 1) { k = 1; dir = 0; }
+      else if (q < REST + LEAVE) { k = 1 - easeIn((q - REST) / LEAVE); dir = -1; }
+      else { k = 0; dir = -1; }
+      const y = reduceMotion ? 0 : dir * (1 - k) * SLIDE_VH;
+      const opacity = reduceMotion ? (k >= 0.5 ? 1 : 0) : k;
       el.style.setProperty("--y", `${y.toFixed(2)}vh`);
-      el.style.opacity = String(clamp(1 - Math.abs(y) / 85, 0, 1));
-      const visible = Math.abs(y) < 50;
+      el.style.opacity = opacity.toFixed(3);
+      const visible = k >= 0.5;
       el.setAttribute("aria-hidden", visible ? "false" : "true");
       el.inert = !visible;
       el.classList.toggle("is-active", visible);
-      el.style.visibility = Math.abs(y) >= 99 ? "hidden" : "visible";
+      el.style.visibility = k <= 0 ? "hidden" : "visible";
     });
   }
 
   hint.addEventListener("click", () => {
     const max = document.documentElement.scrollHeight - window.innerHeight;
-    window.scrollTo({ top: (max * 0.45) / (N - 0.2), behavior: reduceMotion ? "auto" : "smooth" });
+    window.scrollTo({ top: (max * (ENTER + 0.2)) / STORY_UNITS, behavior: reduceMotion ? "auto" : "smooth" }); // first card at rest
   });
 
   // time of day toggle
@@ -1038,13 +1065,20 @@
   function setTimeLabel() { tbtn.querySelector("span").textContent = TIMES[timeKey].label; }
   tbtn.addEventListener("click", () => {
     timeKey = ORDER[(ORDER.indexOf(timeKey) + 1) % ORDER.length];
-    try { localStorage.setItem("garden-time", timeKey); } catch (e) {}
     document.body.dataset.time = timeKey;
     setTimeLabel();
     buildBackground();
   });
   document.body.dataset.time = timeKey;
   setTimeLabel();
+  // Back/forward cache restores the page as it was left; start again at sunset.
+  window.addEventListener("pageshow", (e) => {
+    if (!e.persisted || timeKey === DEFAULT_TIME) return;
+    timeKey = DEFAULT_TIME;
+    document.body.dataset.time = timeKey;
+    setTimeLabel();
+    buildBackground();
+  });
 
   // quote typewriter
   // The full quote is in the markup from first paint (final layout, no shift); the untyped
@@ -1059,8 +1093,17 @@
       typed = textEl.querySelector(".q-typed");
       rest = textEl.querySelector(".q-rest");
     }
-    const DELAY = 120, DURATION = 1700;
-    let shown = -1, start = 0, raf = 0, done = false;
+    // Steady pace: every character gets the same time (a short breath after a comma), about 3.1s
+    // in total. The clock only advances by at most one long frame at a time, so a janky start
+    // makes the typing lag smoothly instead of bursting to catch up.
+    const DELAY = 150, PER_CHAR = 28, COMMA_PAUSE = 240, MAX_STEP = 50;
+    const due = []; // time at which character i appears
+    for (let i = 0, at = DELAY; i < full.length; i++) {
+      at += PER_CHAR;
+      due.push(at);
+      if (full[i] === ",") at += COMMA_PAUSE;
+    }
+    let shown = -1, last = 0, elapsed = 0, typedCount = 0, raf = 0, done = false;
     const render = (n) => {
       if (n === shown) return;
       shown = n;
@@ -1080,10 +1123,11 @@
     ["scroll", "keydown", "pointerdown", "wheel", "touchstart"].forEach((ev) => window.addEventListener(ev, finish, { passive: true }));
     const tick = (now) => {
       if (done) return;
-      if (!start) start = now;
-      const t = clamp((now - start - DELAY) / DURATION, 0, 1);
-      render(Math.round(t * full.length));
-      if (t < 1) raf = requestAnimationFrame(tick);
+      elapsed += last ? Math.min(now - last, MAX_STEP) : 0;
+      last = now;
+      while (typedCount < full.length && due[typedCount] <= elapsed) typedCount++;
+      render(typedCount);
+      if (typedCount < full.length) raf = requestAnimationFrame(tick);
       else finish();
     };
     raf = requestAnimationFrame(tick);
@@ -1109,6 +1153,7 @@
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layout(); readScroll(); });
   layout();
   readScroll();
+  updateStory(progress);
   typeQuote();
   requestAnimationFrame(frame);
 

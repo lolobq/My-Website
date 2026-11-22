@@ -675,19 +675,19 @@ body.page { background: linear-gradient(180deg, #bcdcef 0%, #e3eff0 45%, #efe9da
   #site-header .actions[data-count="6"] .nav-link { font-size: 12.5px; }
 }
 
-/* ───────────── Stone slab surface (colors from the slab in scene.js) ─────────────
+/* ───────────── Stone slab surface (the slab in scene.js, a step lighter for legibility) ─────────────
    Reusable: add class="stone" (and, for buttons, "btn stone"). Text on stone uses
    --ink, --stone-moss or --stone-clay, which stay ≥4.5:1 even over the darkest grain. */
 :root {
-  --stone: #bdb5a6;
-  --stone-dark: #a9a193;
-  --stone-light: #d3ccbf;
-  --stone-top: #e2dccf;
-  --stone-shadow: #958d7f;
+  --stone: #cbc4b6;
+  --stone-dark: #b8b0a2;
+  --stone-light: #e0d9cc;
+  --stone-top: #ece7dc;
+  --stone-shadow: #a49c8e;
   --stone-line: #3a332c;
   --stone-moss: #263d1c;
   --stone-clay: #5e2a14;
-  --stone-grain: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path fill='%23a9a193' d='M3 0h1v1h-1zM6 0h1v1h-1zM8 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM14 0h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 3h1v1h-1zM8 3h1v1h-1zM6 4h1v1h-1zM14 4h1v1h-1zM1 5h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM8 5h1v1h-1zM10 6h1v1h-1zM3 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM13 7h1v1h-1zM1 8h1v1h-1zM2 8h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM3 9h1v1h-1zM8 9h1v1h-1zM13 9h1v1h-1zM3 11h1v1h-1zM4 11h1v1h-1zM8 12h1v1h-1zM8 13h1v1h-1zM3 14h1v1h-1zM13 15h1v1h-1z'/><path fill='%23d3ccbf' d='M1 1h1v1h-1zM4 1h1v1h-1zM2 3h1v1h-1zM3 4h1v1h-1zM9 4h1v1h-1zM2 6h1v1h-1zM14 6h1v1h-1zM15 8h1v1h-1zM9 9h1v1h-1zM15 9h1v1h-1zM11 10h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM11 11h1v1h-1zM12 11h1v1h-1zM2 13h1v1h-1zM5 13h1v1h-1zM14 13h1v1h-1zM4 14h1v1h-1zM7 14h1v1h-1zM3 15h1v1h-1zM9 15h1v1h-1z'/></svg>");
+  --stone-grain: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path fill='%23b8b0a2' d='M3 0h1v1h-1zM6 0h1v1h-1zM8 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM14 0h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 3h1v1h-1zM8 3h1v1h-1zM6 4h1v1h-1zM14 4h1v1h-1zM1 5h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM8 5h1v1h-1zM10 6h1v1h-1zM3 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM13 7h1v1h-1zM1 8h1v1h-1zM2 8h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM3 9h1v1h-1zM8 9h1v1h-1zM13 9h1v1h-1zM3 11h1v1h-1zM4 11h1v1h-1zM8 12h1v1h-1zM8 13h1v1h-1zM3 14h1v1h-1zM13 15h1v1h-1z'/><path fill='%23e0d9cc' d='M1 1h1v1h-1zM4 1h1v1h-1zM2 3h1v1h-1zM3 4h1v1h-1zM9 4h1v1h-1zM2 6h1v1h-1zM14 6h1v1h-1zM15 8h1v1h-1zM9 9h1v1h-1zM15 9h1v1h-1zM11 10h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM11 11h1v1h-1zM12 11h1v1h-1zM2 13h1v1h-1zM5 13h1v1h-1zM14 13h1v1h-1zM4 14h1v1h-1zM7 14h1v1h-1zM3 15h1v1h-1zM9 15h1v1h-1z'/></svg>");
   --stone-edge: inset 0 3px 0 var(--stone-top), inset 3px 0 0 var(--stone-light), inset -3px 0 0 var(--stone-shadow), inset 0 -3px 0 var(--stone-shadow), 0 0 0 1px var(--stone-line);
 }
 .stone {
@@ -839,7 +839,7 @@ main:focus { outline: none; }
   /* The closing card's button never scrolls out of view */
   .card.card-cta { padding-bottom: 0; }
   .card.card-cta p { font-size: 15.5px; line-height: 1.35; }
-  .card.card-cta .btn-big { position: sticky; bottom: 0; margin: 8px 0 0; outline-offset: -4px; box-shadow: 0 0 0 1px var(--stone-line), 0 -10px 12px -2px rgba(189, 181, 166, 0.95); }
+  .card.card-cta .btn-big { position: sticky; bottom: 0; margin: 8px 0 0; outline-offset: -4px; box-shadow: 0 0 0 1px var(--stone-line), 0 -10px 12px -2px rgba(203, 196, 182, 0.95); }
   .card.card-cta::after { content: ""; display: block; height: 12px; }
 }
 #home-actions { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
@@ -1023,3 +1023,66 @@ body.page.page-resume {
 #dock .btn { min-width: 44px; min-height: 44px; justify-content: center; }
 /* No-JS fallbacks */
 #site-header noscript { display: contents; }
+
+/* ───────────── Legible type on stone: the header nav's serif (--display, 600) ───────────── */
+/* Home buttons under the sculptor match the top bar's links. */
+#home-actions .btn.stone {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: 0.2px;
+  text-transform: none;
+  line-height: 1.1;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+#home-actions .btn .icon { width: 13px; height: 9px; }
+@media (max-width: 1100px) { #home-actions .btn.stone { font-size: 19px; } }
+@media (max-width: 560px) { #home-actions .btn.stone { font-size: 17px; letter-spacing: 0.2px; padding: 9px 8px; } }
+@media (max-width: 350px) { #home-actions .btn.stone { font-size: 15px; letter-spacing: 0; } }
+
+/* Tagline and quote attribution: same serif, bolder and darker on the grain. */
+#site-header .bar.stone .tagline, #quote.stone figcaption {
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+#site-header .bar.stone .tagline { font-size: 16px; letter-spacing: 2.5px; }
+#quote.stone figcaption { font-size: 17px; letter-spacing: 3px; }
+@media (max-width: 560px) {
+  #site-header .bar.stone .tagline { font-size: 12px; letter-spacing: 1.5px; }
+  #quote.stone figcaption { font-size: 15px; letter-spacing: 2.5px; }
+}
+
+/* ───────────── Story cards carved from the same stone ───────────── */
+.card.stone {
+  color: var(--ink);
+  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  box-shadow: var(--stone-edge), 0 10px 30px rgba(43, 34, 51, 0.26);
+  border-radius: 3px;
+}
+.card.stone .kicker {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 2.5px;
+  color: var(--stone-clay);
+}
+.card.stone h2 { font-size: clamp(22px, 1.9vw, 26px); color: var(--ink); }
+.card.stone p:not(.kicker) { font-size: 15.5px; font-weight: 500; color: var(--ink); }
+.card.stone .ph { background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(43, 34, 51, 0.08) 6px 12px), var(--stone-top); color: var(--ink); }
+.card.stone .btn-link { color: var(--ink); border-color: var(--stone-line); background: var(--stone-top); }
+.card.stone .btn-link:hover { background: var(--ink); color: var(--paper); }
+.card.card-cta.stone h2 { font-size: clamp(26px, 2.4vw, 34px); }
+@media (max-width: 900px) {
+  .card.stone .kicker { font-size: 11px; letter-spacing: 2px; margin-bottom: 2px; }
+  .card.stone h2 { font-size: 18px; font-weight: 700; }
+  .card.stone p:not(.kicker) { font-size: 16px; line-height: 1.4; }
+  .card.card-cta.stone h2 { font-size: 20px; }
+  .card.card-cta.stone p:not(.kicker) { font-size: 16px; line-height: 1.35; }
+}
+/* Reduced motion: cards don't slide; a short fade marks the swap. */
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: opacity 150ms linear; }
+}
