@@ -5,9 +5,9 @@
 
 /* Header height before js/pages.js measures it (it sets --header-h inline). Matches the real
    header at phone and desktop widths so the page doesn't jump when the measurement lands. */
-:root { --header-h: 88px; }
-@media (max-width: 900px) { :root { --header-h: 104px; } }
-@media (max-width: 560px) { :root { --header-h: 86px; } }
+:root { --header-h: 56px; }
+@media (max-width: 900px) { :root { --header-h: 53px; } }
+@media (max-width: 800px) { :root { --header-h: 56px; } }
 
 /* ───────────── Resume: the PDF on the garden, nothing else ─────────────
    Desktop with a PDF viewer: one stone frame filling the viewport below the header.
