@@ -675,24 +675,35 @@ body.page { background: linear-gradient(180deg, #bcdcef 0%, #e3eff0 45%, #efe9da
   #site-header .actions[data-count="6"] .nav-link { font-size: 12.5px; }
 }
 
-/* ───────────── Stone slab surface (the slab in scene.js, a step lighter for legibility) ─────────────
+/* ───────────── Stone slab surface: polished marble (warm white, soft grey veins, a gloss) ─────────────
    Reusable: add class="stone" (and, for buttons, "btn stone"). Text on stone is --ink (or
-   --stone-moss), never brown; kickers and tags stand apart by weight and size, not colour. */
+   --stone-moss), never brown; kickers and tags stand apart by weight and size, not colour.
+   AA: --ink is 12.5:1 on the base and 8.5:1 on the darkest vein (--stone-moss 9.7:1 and 6.7:1). */
 :root {
-  --stone: #d9d3c7;
-  --stone-dark: #c7c0b3;
-  --stone-light: #ebe6dc;
-  --stone-top: #f4f1ea;
-  --stone-shadow: #b4ad9f;
-  --stone-line: #3a332c;
+  --stone: #ece8e0;
+  --stone-dark: #ddd7cc;
+  --stone-light: #f4f1eb;
+  --stone-top: #faf8f4;
+  --stone-shadow: #cbc4b7;
+  --stone-line: #4a423a;
   --stone-moss: #263d1c;
   --stone-clay: #5e2a14;
-  --stone-grain: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><path fill='%23c7c0b3' d='M3 0h1v1h-1zM6 0h1v1h-1zM8 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM14 0h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 3h1v1h-1zM8 3h1v1h-1zM6 4h1v1h-1zM14 4h1v1h-1zM1 5h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM8 5h1v1h-1zM10 6h1v1h-1zM3 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM13 7h1v1h-1zM1 8h1v1h-1zM2 8h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM3 9h1v1h-1zM8 9h1v1h-1zM13 9h1v1h-1zM3 11h1v1h-1zM4 11h1v1h-1zM8 12h1v1h-1zM8 13h1v1h-1zM3 14h1v1h-1zM13 15h1v1h-1z'/><path fill='%23ebe6dc' d='M1 1h1v1h-1zM4 1h1v1h-1zM2 3h1v1h-1zM3 4h1v1h-1zM9 4h1v1h-1zM2 6h1v1h-1zM14 6h1v1h-1zM15 8h1v1h-1zM9 9h1v1h-1zM15 9h1v1h-1zM11 10h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM11 11h1v1h-1zM12 11h1v1h-1zM2 13h1v1h-1zM5 13h1v1h-1zM14 13h1v1h-1zM4 14h1v1h-1zM7 14h1v1h-1zM3 15h1v1h-1zM9 15h1v1h-1z'/></svg>");
-  --stone-edge: inset 0 3px 0 var(--stone-top), inset 3px 0 0 var(--stone-light), inset -3px 0 0 var(--stone-shadow), inset 0 -3px 0 var(--stone-shadow), 0 0 0 1px var(--stone-line);
+  /* Veins: two diagonal veins that wrap seamlessly over a 600x400 tile (each drawn twice, a
+     wide faint halo under a thin line, so they read soft without a blur filter), plus one branch. */
+  --stone-veins: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400'><defs><path id='a' d='M0 40C200 80 250 300 400 340S560 440 600 440'/><path id='b' d='M0 250C120 262 220 360 330 420S520 640 600 650'/></defs><g fill='none' stroke='%23857b6e' stroke-linecap='round'><g stroke-width='7' stroke-opacity='.07'><use href='%23a'/><use href='%23a' y='-400'/></g><g stroke-width='1.3' stroke-opacity='.26'><use href='%23a'/><use href='%23a' y='-400'/></g><g stroke-width='5' stroke-opacity='.05'><use href='%23b'/><use href='%23b' y='-400'/></g><g stroke-width='.9' stroke-opacity='.2'><use href='%23b'/><use href='%23b' y='-400'/></g><path stroke-width='.8' stroke-opacity='.16' d='M262 190c40 6 70 34 118 40s62 30 96 60'/></g></svg>");
+  /* Gloss: a soft highlight across the top left, fading to a faint shade at the bottom right. */
+  --stone-gloss: linear-gradient(155deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.28) 24%, rgba(255, 255, 255, 0) 48%, rgba(255, 255, 255, 0) 72%, rgba(90, 80, 70, 0.06) 100%);
+  --stone-surface: var(--stone-gloss) 0 0 / 100% 100% no-repeat, var(--stone-veins) 0 0 / 600px 400px repeat, var(--stone);
+  /* Older rules write `var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone)`. --stone-grain is
+     the gloss and vein layers plus a blank last layer that takes that 48px sizing, so those rules
+     paint the same marble as --stone-surface. */
+  --stone-grain: var(--stone-gloss) 0 0 / 100% 100% no-repeat, var(--stone-veins) 0 0 / 600px 400px repeat, linear-gradient(transparent, transparent);
+  /* Edge: crisp 1px highlight on top, a faint shade underneath, a thin dark line, a soft shadow. */
+  --stone-edge: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 1px 0 0 rgba(255, 255, 255, 0.45), inset 0 -2px 0 rgba(140, 128, 112, 0.28), 0 0 0 1px var(--stone-line), 0 2px 5px rgba(43, 34, 51, 0.12);
 }
 .stone {
   color: var(--ink);
-  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  background: var(--stone-surface);
   box-shadow: var(--stone-edge);
   border-radius: 3px;
 }
@@ -700,28 +711,28 @@ body.page { background: linear-gradient(180deg, #bcdcef 0%, #e3eff0 45%, #efe9da
 
 /* Top bar */
 #site-header .bar.stone, #site-header .bar.stone[class] {
-  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
-  box-shadow: inset 0 3px 0 var(--stone-top), inset 0 -3px 0 var(--stone-shadow), 0 1px 0 var(--stone-line), 0 6px 20px rgba(43, 34, 51, 0.18);
+  background: var(--stone-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -2px 0 rgba(140, 128, 112, 0.28), 0 1px 0 var(--stone-line), 0 6px 20px rgba(43, 34, 51, 0.18);
   border-radius: 0;
 }
 #site-header .bar.stone .tagline { color: var(--stone-moss); }
 #site-header .bar.stone .nav-link:hover { color: var(--ink); }
 
 /* Quote box */
-#quote.stone { background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone); box-shadow: var(--stone-edge), 0 8px 28px rgba(43, 34, 51, 0.2); border-radius: 3px; }
+#quote.stone { background: var(--stone-surface); box-shadow: var(--stone-edge), 0 8px 28px rgba(43, 34, 51, 0.2); border-radius: 3px; }
 #quote.stone figcaption { color: var(--stone-moss); }
 
 /* Stone buttons */
 .btn.stone, #dock .btn.stone {
   color: var(--ink);
-  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  background: var(--stone-surface);
   border: 0;
   border-radius: 3px;
   box-shadow: var(--stone-edge), 0 4px 16px rgba(43, 34, 51, 0.18);
   transition: background-color 200ms ease, transform 120ms ease;
 }
-.btn.stone:hover, #dock .btn.stone:hover { color: var(--ink); background-color: var(--stone-light); background-image: var(--stone-grain); }
-.btn.stone:active, #dock .btn.stone:active { box-shadow: inset 0 3px 0 var(--stone-shadow), inset 3px 0 0 var(--stone-shadow), inset -3px 0 0 var(--stone-light), inset 0 -3px 0 var(--stone-top), 0 0 0 1px var(--stone-line); }
+.btn.stone:hover, #dock .btn.stone:hover { color: var(--ink); background-color: var(--stone-light); }
+.btn.stone:active, #dock .btn.stone:active { box-shadow: inset 0 2px 4px rgba(90, 80, 70, 0.28), inset 0 -1px 0 rgba(255, 255, 255, 0.7), 0 0 0 1px var(--stone-line); }
 .btn.stone:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
 /* ───────────── Skip link (every page) ───────────── */
@@ -775,7 +786,7 @@ main:focus { outline: none; }
 /* Closing card: the payoff, carved from the same stone */
 .card.card-cta {
   color: var(--ink);
-  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  background: var(--stone-surface);
   box-shadow: var(--stone-edge), 0 12px 36px rgba(43, 34, 51, 0.3);
   border-radius: 3px;
   padding: 30px 34px;
@@ -839,7 +850,7 @@ main:focus { outline: none; }
   /* The closing card's button never scrolls out of view */
   .card.card-cta { padding-bottom: 0; }
   .card.card-cta p { font-size: 15.5px; line-height: 1.35; }
-  .card.card-cta .btn-big { position: sticky; bottom: 0; margin: 8px 0 0; outline-offset: -4px; box-shadow: 0 0 0 1px var(--stone-line), 0 -10px 12px -2px rgba(217, 211, 199, 0.95); }
+  .card.card-cta .btn-big { position: sticky; bottom: 0; margin: 8px 0 0; outline-offset: -4px; box-shadow: 0 0 0 1px var(--stone-line), 0 -10px 12px -2px rgba(236, 232, 224, 0.95); }
   .card.card-cta::after { content: ""; display: block; height: 12px; }
 }
 #home-actions { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
@@ -1058,7 +1069,7 @@ body.page.page-resume {
 /* ───────────── Story cards carved from the same stone ───────────── */
 .card.stone {
   color: var(--ink);
-  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  background: var(--stone-surface);
   box-shadow: var(--stone-edge), 0 10px 30px rgba(43, 34, 51, 0.26);
   border-radius: 3px;
 }
