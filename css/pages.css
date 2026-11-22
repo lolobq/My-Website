@@ -173,3 +173,38 @@ body:has(.project-panel[open]) { overflow: hidden; }
   .tile, .tile-more { transition: none; }
   .tile:hover { transform: none; }
 }
+
+/* ───────────── About, Speaking, Coffee, Writing: content boxes carved from the same stone ─────────────
+   Add class="stone" next to the page's .pixel-box. Type follows the header nav (--display, 600, --ink);
+   accents use --stone-clay / --stone-moss so every line stays AA over the darkest grain. */
+.page-main > .pixel-box.stone {
+  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  box-shadow: var(--stone-edge), 0 8px 28px rgba(43, 34, 51, 0.22);
+  border-radius: 3px;
+  color: var(--ink);
+}
+.page-main > .stone h1, .page-main > .stone h2 { font-family: var(--display); font-weight: 600; color: var(--ink); }
+.page-main > .stone p, .page-main > .stone li { font-family: var(--display); font-weight: 600; font-size: 19px; line-height: 1.5; color: var(--ink); }
+.page-main > .stone .lede, .page-main > .stone .contact-email, .page-main > .stone .contact-email span { color: var(--ink); }
+.page-main > .stone .item-meta, .page-main > .stone time { font-family: var(--display); font-weight: 700; letter-spacing: 1.5px; color: var(--stone-clay); }
+.page-main > .stone a:not(.btn) { color: var(--ink); text-underline-offset: 4px; }
+.page-main > .stone a:not(.btn):hover { color: var(--stone-clay); }
+.page-main > .stone .btn:not(.btn-big) { background: var(--paper); }
+.page-main > .stone .btn:not(.btn-big):hover { background: var(--ink); color: var(--paper); }
+.page-main > .stone .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* cards inside: their own slabs, raised off the box */
+.page-main > .stone .item-list li,
+.page-main > .stone .post-list a {
+  background: var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone);
+  box-shadow: var(--stone-edge), 0 6px 18px rgba(43, 34, 51, 0.2);
+  border-radius: 3px;
+}
+.page-main > .stone .post-list a:hover { background-color: var(--stone-light); }
+.page-main > .stone .post-list a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.page-main > .stone .yt-block.stone { box-shadow: var(--stone-edge), 0 6px 18px rgba(43, 34, 51, 0.2); }
+.page-main > .stone .talk-media, .page-main > .stone .yt-media { box-shadow: 0 0 0 1px var(--stone-line); }
+.page-main > .stone .about-photo { box-shadow: 0 0 0 1px var(--stone-line), 0 0 0 4px var(--stone-top); }
+@media (max-width: 560px) {
+  .page-main > .stone p, .page-main > .stone li { font-size: 18px; }
+}
