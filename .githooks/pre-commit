@@ -1,0 +1,3 @@
+#!/bin/sh
+# Blocks commits that add a blocked term (see .githooks/check.mjs).
+exec node "$(dirname "$0")/check.mjs" pre-commit

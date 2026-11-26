@@ -1,0 +1,3 @@
+#!/bin/sh
+# Last local check before GitHub: scans every commit being pushed (see .githooks/check.mjs).
+exec node "$(dirname "$0")/check.mjs" pre-push
