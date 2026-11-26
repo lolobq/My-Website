@@ -1,7 +1,7 @@
 {
   "ci": {
     "collect": {
-      "startServerCommand": "npx http-server . -p 4176 -a 127.0.0.1 -c-1",
+      "startServerCommand": "node tests/serve-gz.mjs 4176",
       "startServerReadyPattern": "Available on",
       "startServerReadyTimeout": 15000,
       "url": [
