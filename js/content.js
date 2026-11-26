@@ -361,7 +361,7 @@ window.PROJECTS = {
     {
       title: "Job-search agent (MCP server)",
       status: "In progress",
-      description: "An AI agent with tool use that runs a job search for job seekers like me, with human approval of every application, Gmail integration, and a status dashboard.",
+      description: "An AI agent with tool use that runs a job search for job seekers, with human approval of every application, Gmail integration, and a status dashboard.",
       media: null,
     },
     {
@@ -478,7 +478,64 @@ window.CONTACT = {
  *   ],
  * },
  */
-window.POSTS = [];
+window.POSTS = [
+  // LOCAL PREVIEW ONLY: sample posts so Lauren can see the layout. Never commit these.
+  {
+    slug: "sample-hip-surgery-to-stage",
+    title: "From crutches to a bodybuilding stage",
+    date: "2026-11-18",
+    tags: ["health", "philosophy"],
+    excerpt: "Sample post. What a year of rebuilding after hip surgery taught me about doing hard things on purpose.",
+    body: [
+      "In January I was on crutches after major hip surgery. On **December 5** I step on a bodybuilding stage.",
+      { h: "The plan was boring" },
+      "Nobody wants to hear it, but the plan was boring. Show up, log it, recover, repeat.",
+      { list: ["Train 5 days a week", "Track sleep and recovery", "Change one variable at a time"] },
+      { quote: "You don't find yourself. You create yourself.", cite: "Me, to anyone who'll listen" },
+      "The tools were already there. I just had to use them.",
+    ],
+  },
+  {
+    slug: "sample-agents-in-legacy-code",
+    title: "What AI coding agents are actually good at in legacy code",
+    date: "2026-11-02",
+    tags: ["tech"],
+    excerpt: "Sample post. Notes from migrating 20-year-old batch jobs with an AI coding agent in the loop.",
+    body: [
+      "Everyone asks if AI agents can rewrite old systems. The honest answer: *some of it*, if a human owns the plan.",
+      { h: "Where it helped" },
+      { list: ["Reading code nobody had touched in years", "Drafting the first pass of a migration", "Writing the boring tests"] },
+      { h: "Where it didn't" },
+      "Knowing which weird behavior was a bug and which one a client depended on. That part is still people.",
+    ],
+  },
+  {
+    slug: "sample-reading-crucial-conversations",
+    title: "What I'm reading: the conversations we dread",
+    date: "2026-10-20",
+    tags: ["communication", "philosophy"],
+    excerpt: "Sample post. A book about hard conversations, and why practice beats preparation.",
+    reading: { title: "Crucial Conversations", author: "Patterson, Grenny, McMillan & Switzler", href: "https://www.google.com/search?q=Crucial+Conversations" },
+    body: [
+      "Most of us prepare for hard conversations by rehearsing in the shower. It doesn't work.",
+      "This book's big idea: when stakes are high, make it **safe** to keep talking.",
+      { quote: "The best rehearsal is a real rep.", cite: "Sample quote" },
+      "That idea is a big part of why I'm building what I'm building.",
+    ],
+  },
+  {
+    slug: "sample-sourcing-problems-from-executives",
+    title: "How to get executives to hand you their real problems",
+    date: "2026-09-30",
+    tags: ["communication", "tech"],
+    excerpt: "Sample post. What I learned pitching senior leaders for the innovation capstone.",
+    body: [
+      "Executives don't hand you problems because you asked nicely. They hand them over when you show you'll do something with them.",
+      { list: ["Come with a timeline", "Ask what keeps them up at night, then shut up", "Report back, even when it's small"] },
+      "That's how 150+ analysts ended up with 31 real problems to solve.",
+    ],
+  },
+];
 
 /* The fixed set of tags. Posts refer to them by id. */
 window.TAGS = [
