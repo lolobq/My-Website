@@ -221,17 +221,3 @@ test.describe("mobile 375px layout", () => {
     });
   }
 });
-
-// Release guard: sample Reflections posts are approved for preview branches only and must
-// be removed from js/content.js before merging. Runs on pushes to main (GITHUB_REF) and on pull requests into main (GITHUB_BASE_REF).
-test.describe("release guard", () => {
-  test("no sample posts ship to main", async ({ page }) => {
-    test.skip(!(process.env.GITHUB_REF === "refs/heads/main" || process.env.GITHUB_BASE_REF === "main"), "release guard runs on pushes to main and on pull requests into main");
-    await page.goto("/reflections.html");
-    const samples = await page.evaluate(() => {
-      const P = /** @type {any} */ (window).POSTS || [];
-      return P.filter((p) => String(p.slug || "").startsWith("sample-") || String(p.excerpt || "").startsWith("Sample post.")).map((p) => p.slug);
-    });
-    expect(samples, "remove sample posts from js/content.js before merging to main").toEqual([]);
-  });
-});

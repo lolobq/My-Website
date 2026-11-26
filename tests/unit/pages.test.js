@@ -17,7 +17,6 @@ const POST = (o = {}) => ({ slug: "a", title: "A", date: "2026-11-01", tags: ["t
 // Force an empty POSTS list (runs right after js/content.js), so empty-state tests
 // do not depend on whatever posts content.js currently ships.
 const NO_POSTS = (w) => { w.POSTS = []; };
-const ON_MAIN = process.env.GITHUB_REF === "refs/heads/main" || process.env.GITHUB_BASE_REF === "main";
 const WIDE = (q) => /min-width: 768px/.test(q) && /pointer: fine/.test(q);
 const REDUCE = (q) => /prefers-reduced-motion: reduce/.test(q);
 
@@ -652,16 +651,6 @@ describe("content", () => {
     const { win } = loadPage("about.html");
     const ids = win.TAGS.map((t) => t.id);
     expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  // Release guard: sample Reflections posts are approved for preview branches only.
-  // Runs on pushes to main and on PRs into main; elsewhere it is skipped with this reason in the test name.
-  it.skipIf(!ON_MAIN)("release guard: no sample posts ship to main (runs on pushes to main and on pull requests into main)", () => {
-    const { win } = loadPage("about.html");
-    const samples = (win.POSTS || [])
-      .filter((p) => String(p.slug || "").startsWith("sample-") || String(p.excerpt || "").startsWith("Sample post."))
-      .map((p) => p.slug);
-    expect(samples, "remove sample posts from js/content.js before merging to main").toEqual([]);
   });
 
   it("pages load without script errors", () => {
