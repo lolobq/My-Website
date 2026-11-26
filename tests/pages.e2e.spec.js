@@ -779,6 +779,8 @@ test.describe("reflections", () => {
     page.$$eval(".tag-filter button", (bs) => bs.filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.textContent.trim()));
 
   test("empty: nav still shows Reflections (current), filter buttons, All pressed, empty state", async ({ page }) => {
+    // Force an empty list so this does not depend on the posts content.js ships.
+    await injectPosts(page, []);
     await page.goto("/reflections.html");
     const nav = page.locator(SEL.nav).first();
     expect((await nav.locator("a:visible").allInnerTexts()).map(norm)).toEqual(NAV_ORDER);
@@ -791,6 +793,8 @@ test.describe("reflections", () => {
   });
 
   test("empty: ?tag= deep link presses that filter and shows a tag empty state", async ({ page }) => {
+    // Force an empty list so this does not depend on the posts content.js ships.
+    await injectPosts(page, []);
     await page.goto("/reflections.html?tag=philosophy");
     expect(await pressed(page)).toEqual(["Philosophy"]);
     await expect(page.locator(".post-empty")).toContainText(/nothing tagged philosophy/i);

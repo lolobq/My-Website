@@ -14,6 +14,10 @@ const navLabels = (doc) =>
     .map((a) => norm(a.textContent));
 
 const POST = (o = {}) => ({ slug: "a", title: "A", date: "2026-11-01", tags: ["tech"], excerpt: "Ex.", body: ["x"], ...o });
+// Force an empty POSTS list (runs right after js/content.js), so empty-state tests
+// do not depend on whatever posts content.js currently ships.
+const NO_POSTS = (w) => { w.POSTS = []; };
+const ON_MAIN = process.env.GITHUB_REF === "refs/heads/main";
 const WIDE = (q) => /min-width: 768px/.test(q) && /pointer: fine/.test(q);
 const REDUCE = (q) => /prefers-reduced-motion: reduce/.test(q);
 
@@ -217,7 +221,7 @@ describe("reflections", () => {
   const titles = (doc) => [...doc.querySelectorAll(".post-link")].map((a) => a.textContent);
 
   it("empty state with All + every tag from window.TAGS", () => {
-    const { win, doc } = loadPage("reflections.html");
+    const { win, doc } = loadPage("reflections.html", { before: NO_POSTS });
     const labels = [...doc.querySelectorAll(".tag-filter button")].map((b) => b.textContent);
     expect(labels).toEqual(["All", ...win.TAGS.map((t) => t.label)]);
     expect(pressed(doc)).toEqual(["All"]);
@@ -227,7 +231,7 @@ describe("reflections", () => {
   });
 
   it("?tag= deep link presses that filter; empty tag state links back to all", () => {
-    const { doc } = loadPage("reflections.html", { hash: "?tag=health" });
+    const { doc } = loadPage("reflections.html", { hash: "?tag=health", before: NO_POSTS });
     expect(pressed(doc)).toEqual(["Health & Wellness"]);
     expect(doc.querySelector(".post-empty").textContent).toMatch(/Nothing tagged Health & Wellness yet/);
     expect(doc.querySelector(".post-empty a").getAttribute("href")).toBe("reflections.html");
@@ -644,11 +648,20 @@ describe("content", () => {
     expect(cta.href).toBe(win.SITE.calendar);
   });
 
-  it("POSTS ships empty and TAGS has unique ids", () => {
+  it("TAGS has unique ids", () => {
     const { win } = loadPage("about.html");
-    expect(win.POSTS).toEqual([]);
     const ids = win.TAGS.map((t) => t.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  // Release guard: sample Reflections posts are approved for preview branches only.
+  // Runs only on main; elsewhere it is skipped with this reason in the test name.
+  it.skipIf(!ON_MAIN)("release guard: no sample posts ship to main (skipped unless GITHUB_REF=refs/heads/main)", () => {
+    const { win } = loadPage("about.html");
+    const samples = (win.POSTS || [])
+      .filter((p) => String(p.slug || "").startsWith("sample-") || String(p.excerpt || "").startsWith("Sample post."))
+      .map((p) => p.slug);
+    expect(samples, "remove sample posts from js/content.js before merging to main").toEqual([]);
   });
 
   it("pages load without script errors", () => {

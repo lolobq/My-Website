@@ -16,6 +16,7 @@ const {
   hasHorizontalScroll,
   overflowCulprits,
   smallTapTargets,
+  injectPosts,
 } = require("./helpers");
 
 for (const pg of PAGES) {
@@ -57,13 +58,14 @@ for (const pg of PAGES) {
     });
 
     test("nav: labels and order; Reflections shown with POSTS empty; aria-current", async ({ page }) => {
+      // Force POSTS empty (independent of what content.js ships): Reflections still shows (Lauren's call).
+      await injectPosts(page, []);
       await page.goto(pg.path);
       const nav = page.locator(SEL.nav).first();
       await expect(nav).toBeVisible();
       const labels = (await nav.locator("a:visible").allInnerTexts()).map(norm);
       expect(labels, "visible nav labels in order").toEqual(NAV_ORDER);
-      // Committed content ships with POSTS empty; Reflections still shows (Lauren's call).
-      expect(await page.evaluate(() => { const P = /** @type {any} */ (window).POSTS; return Array.isArray(P) && P.length; }), "POSTS ships empty").toBe(0);
+      expect(await page.evaluate(() => { const P = /** @type {any} */ (window).POSTS; return Array.isArray(P) && P.length; }), "POSTS forced empty").toBe(0);
       const refl = nav.getByRole("link", { name: /^reflections$/i });
       await expect(refl, "Reflections in the nav even while POSTS is empty").toHaveCount(1);
       await expect(refl).toHaveAttribute("href", "reflections.html");
@@ -218,4 +220,18 @@ test.describe("mobile 375px layout", () => {
       expect(small, "controls smaller than 44x44 CSS px").toEqual([]);
     });
   }
+});
+
+// Release guard: sample Reflections posts are approved for preview branches only and must
+// be removed from js/content.js before merging. Runs only when GITHUB_REF is main.
+test.describe("release guard", () => {
+  test("no sample posts ship to main", async ({ page }) => {
+    test.skip(process.env.GITHUB_REF !== "refs/heads/main", "release guard runs only on main (GITHUB_REF=refs/heads/main)");
+    await page.goto("/reflections.html");
+    const samples = await page.evaluate(() => {
+      const P = /** @type {any} */ (window).POSTS || [];
+      return P.filter((p) => String(p.slug || "").startsWith("sample-") || String(p.excerpt || "").startsWith("Sample post.")).map((p) => p.slug);
+    });
+    expect(samples, "remove sample posts from js/content.js before merging to main").toEqual([]);
+  });
 });

@@ -14,7 +14,8 @@ permissions:
 jobs:
   test:
     name: Tests (content, HTML, unit, e2e, a11y, links, Lighthouse)
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest now resolves to 26.04, which Playwright 1.58.2 does not support.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       CI: "true"
@@ -82,7 +83,8 @@ jobs:
     name: Deploy to GitHub Pages
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest now resolves to 26.04, which Playwright 1.58.2 does not support.
+    runs-on: ubuntu-24.04
     permissions:
       pages: write
       id-token: write
