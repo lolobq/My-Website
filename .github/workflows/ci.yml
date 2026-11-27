@@ -67,6 +67,11 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run test:lhci
 
+      - name: Lighthouse summary (diagnostic)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: node tests/lhci-summary.mjs
+
       - name: Upload reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
