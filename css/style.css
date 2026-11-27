@@ -8,11 +8,11 @@
   --clay: #c4693f;
   --clay-dark: #9c4f2d;
   --px: 4px;
-  --header-h: 104px;
+  --header-h: 56px;
   --fig-top: 50vh;
   --fig-bottom: 60vh;
-  --display: "Cormorant Garamond", "EB Garamond", Garamond, Georgia, serif;
-  --text: "EB Garamond", Garamond, Georgia, serif;
+  --display: "Cormorant Garamond", "Cormorant Garamond Fallback", "EB Garamond", Garamond, Georgia, serif;
+  --text: "EB Garamond", "EB Garamond Fallback", Garamond, Georgia, serif;
   color-scheme: light;
 }
 
@@ -235,7 +235,7 @@ a { color: inherit; }
   font-size: 13px;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: var(--clay-dark);
+  color: var(--ink);
 }
 .card h2 {
   margin: 0 0 10px;
@@ -300,7 +300,7 @@ body.page {
 .post-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
 .post-list a { display: block; text-decoration: none; padding: 16px 18px; background: #fffaf0; box-shadow: 0 0 0 3px var(--ink); }
 .post-list a:hover { background: #fff; }
-.post-list time, .post time { font-family: var(--text); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--clay-dark); }
+.post-list time, .post time { font-family: var(--text); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink); }
 .post-list h2 { font-family: var(--display); margin: 4px 0 6px; font-size: 28px; }
 .post-list p { margin: 0; color: var(--ink-soft); }
 .post h1 { margin-top: 6px; }
@@ -593,7 +593,7 @@ body.page { background-attachment: fixed; }
 .item-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
 .item-list li { padding: 18px 20px; background: #fffaf0; border-radius: 7px; box-shadow: 0 0 0 1px rgba(43,34,51,.4); }
 .item-list h2 { font-family: var(--display); font-size: 28px; margin: 2px 0 6px; }
-.item-meta { margin: 0; font-size: 13px !important; letter-spacing: 2px; text-transform: uppercase; color: var(--clay-dark); }
+.item-meta { margin: 0; font-size: 13px !important; letter-spacing: 2px; text-transform: uppercase; color: var(--ink); }
 .contact-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 8px 0 14px; }
 .contact-actions .btn-big { margin-top: 0; }
 .contact-email { color: var(--ink-soft); font-size: 16px !important; }
@@ -659,3 +659,498 @@ body.page { background: linear-gradient(180deg, #bcdcef 0%, #e3eff0 45%, #efe9da
 /* Name and title share one left edge */
 #site-header .who { align-items: flex-start; text-align: left; }
 #site-header .name, #site-header .tagline { margin-left: 0; padding-left: 0; }
+
+/* Nav order: Resume, Projects, About, (Writing), Speaking, Let's get coffee.
+   Taller hit areas (≥44px) via padding + equal negative margin, so the bar keeps its height. */
+#site-header .nav-link { white-space: nowrap; justify-content: center; min-width: 44px; min-height: 44px; padding: 5px 0; margin: -5px 0; }
+#site-header .nav-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (max-width: 900px) {
+  #site-header .bar { flex-wrap: wrap; }
+}
+@media (max-width: 560px) {
+  #site-header .nav-link { padding: 12px 0; margin: -12px 0; }
+  #site-header .actions { justify-content: space-between; gap: 0 4px; }
+}
+@media (max-width: 380px) {
+  #site-header .actions[data-count="6"] .nav-link { font-size: 12.5px; }
+}
+
+/* ───────────── Stone slab surface: polished statuary marble (warm ivory, a carved glow, a satin sheen) ─────────────
+   Reusable: add class="stone" (and, for buttons, "btn stone"). Text on stone is --ink (or
+   --stone-moss), never brown; kickers and tags stand apart by weight and size, not colour.
+   Like a polished Carrara statue: warm ivory, almost no veins (a few faint grey-blue clouds), brighter
+   and warmer in the middle, shading to warm grey at the edges, one broad soft sheen near the top, and
+   softly bevelled edges (light top/left, warm shade bottom/right) inside a soft darker rim.
+   Variants swap only the first five values:
+     B, creamier and warmer: #f3e9d6, rgba(255, 246, 228, 0.8), rgba(156, 124, 86, 0.24), rgba(150, 112, 72, 0.28), rgba(255, 252, 242, 0.6)
+     C, cooler and whiter:   #f2f1ec, rgba(255, 255, 253, 0.85), rgba(116, 120, 128, 0.2), rgba(108, 112, 120, 0.26), rgba(255, 255, 255, 0.7)
+   AA: --ink is 14:1 at the centre, 11:1 on the darkest pixel under text and 8.7:1 on the darkest bevel
+   pixel (--stone-moss 8.7:1 and 6.8:1); B and C stay above 8.3:1 and 6.5:1. */
+:root {
+  --stone: #f1ebdf;
+  --stone-glow: rgba(255, 250, 240, 0.8);
+  --stone-shade: rgba(146, 124, 98, 0.22);
+  --stone-bevel: rgba(140, 114, 84, 0.26);
+  --stone-sheen: rgba(255, 255, 255, 0.62);
+  --stone-dark: #e3dbcc;
+  --stone-light: #f8f4ec;
+  --stone-top: #fbf8f2;
+  --stone-shadow: #cdc2b0;
+  --stone-line: #4a423a;
+  --stone-rim: rgba(84, 70, 54, 0.55);
+  --stone-moss: #263d1c;
+  --stone-clay: #5e2a14;
+  /* Clouds: a few faint, soft grey-blue drifts and one wisp on a large 900x600 tile, kept clear of
+     the tile's edges so it repeats without a seam. Soft from gradient fills and stacked translucent
+     strokes, not a blur filter. */
+  --stone-veins: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='600'><defs><radialGradient id='g'><stop offset='0' stop-color='%23808ea4' stop-opacity='.14'/><stop offset='1' stop-color='%23808ea4' stop-opacity='0'/></radialGradient><path id='w' d='M120 300c80-46 150-14 232-52s150-30 214 8 120 22 200-14'/></defs><g fill='url(%23g)'><ellipse cx='260' cy='120' rx='220' ry='56' transform='rotate(-14 260 120)'/><ellipse cx='640' cy='430' rx='240' ry='64' transform='rotate(-20 640 430)'/><ellipse cx='560' cy='130' rx='120' ry='30' transform='rotate(-6 560 130)'/></g><g fill='none' stroke='%23808ea4' stroke-linecap='round'><use href='%23w' stroke-width='18' stroke-opacity='.025'/><use href='%23w' stroke-width='7' stroke-opacity='.035'/></g></svg>");
+  /* Sheen: one broad, soft satin highlight near the top. */
+  --stone-gloss: radial-gradient(70% 55% at 42% 4%, var(--stone-sheen), rgba(255, 255, 255, 0) 100%);
+  /* Body: the glow under the surface, warm in the middle, rounding off to warm grey at the edges. */
+  --stone-body: radial-gradient(farthest-corner at 50% 44%, var(--stone-glow) 0%, rgba(255, 250, 240, 0) 58%, var(--stone-shade) 100%);
+  --stone-surface: var(--stone-gloss) 0 0 / 100% 100% no-repeat, var(--stone-body) 0 0 / 100% 100% no-repeat, var(--stone-veins) 0 0 / 900px 600px repeat, var(--stone);
+  /* Older rules write `var(--stone-grain) 0 0 / 48px 48px repeat, var(--stone)`. --stone-grain is
+     the sheen, body and cloud layers plus a blank last layer that takes that 48px sizing, so those
+     rules paint the same marble as --stone-surface. */
+  --stone-grain: var(--stone-gloss) 0 0 / 100% 100% no-repeat, var(--stone-body) 0 0 / 100% 100% no-repeat, var(--stone-veins) 0 0 / 900px 600px repeat, linear-gradient(transparent, transparent);
+  /* Edge: a carved bevel (soft light on the top and left, warm shade on the bottom and right) inside
+     a soft darker rim that keeps slabs apart from the pixel garden, then a soft shadow. */
+  --stone-edge: inset 1px 1px 0 rgba(255, 255, 255, 0.9), inset 2px 3px 4px -1px rgba(255, 255, 255, 0.55), inset -2px -3px 5px -1px var(--stone-bevel), 0 0 0 1px var(--stone-rim), 0 2px 6px rgba(43, 34, 51, 0.14);
+}
+.stone {
+  color: var(--ink);
+  background: var(--stone-surface);
+  box-shadow: var(--stone-edge);
+  border-radius: 3px;
+}
+.stone a:not(.btn):hover { color: var(--ink); text-decoration-thickness: 2px; }
+
+/* Top bar */
+#site-header .bar.stone, #site-header .bar.stone[class] {
+  background: var(--stone-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -3px 5px -1px var(--stone-bevel), 0 1px 0 var(--stone-rim), 0 6px 20px rgba(43, 34, 51, 0.18);
+  border-radius: 0;
+}
+#site-header .bar.stone .tagline { color: var(--stone-moss); }
+#site-header .bar.stone .nav-link:hover { color: var(--ink); }
+
+/* Quote box */
+#quote.stone { background: var(--stone-surface); box-shadow: var(--stone-edge), 0 8px 28px rgba(43, 34, 51, 0.2); border-radius: 3px; }
+#quote.stone figcaption { color: var(--stone-moss); }
+
+/* Stone buttons */
+.btn.stone, #dock .btn.stone {
+  color: var(--ink);
+  background: var(--stone-surface);
+  border: 0;
+  border-radius: 3px;
+  box-shadow: var(--stone-edge), 0 4px 16px rgba(43, 34, 51, 0.18);
+  transition: background-color 200ms ease, transform 120ms ease;
+}
+.btn.stone:hover, #dock .btn.stone:hover { color: var(--ink); background-color: var(--stone-light); }
+.btn.stone:active, #dock .btn.stone:active { box-shadow: inset 0 2px 4px rgba(90, 80, 70, 0.28), inset 0 -1px 0 rgba(255, 255, 255, 0.7), 0 0 0 1px var(--stone-rim); }
+.btn.stone:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* ───────────── Skip link (every page) ───────────── */
+.skip-link {
+  position: fixed; z-index: 50; top: 8px; left: 8px;
+  padding: 10px 16px;
+  font-family: var(--text); font-size: 16px;
+  color: var(--paper); background: var(--ink);
+  border-radius: 3px;
+  transform: translateY(-200%);
+}
+.skip-link:focus { transform: none; outline: 2px solid var(--paper); outline-offset: -5px; }
+main:focus { outline: none; }
+
+/* ───────────── Home: Scroll to reveal + Skip to work ───────────── */
+#home-actions {
+  position: fixed;
+  z-index: 5;
+  left: 50%;
+  top: calc(var(--fig-bottom) + 28px);
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  transition: opacity 300ms ease;
+}
+#home-actions.is-gone { opacity: 0; pointer-events: none; visibility: hidden; transition: opacity 300ms ease, visibility 0s 300ms; }
+#home-actions #scroll-hint, #home-actions #scroll-hint:hover { position: static; transform: none; }
+#home-actions .btn { flex: 1 1 0; justify-content: center; min-height: 44px; white-space: nowrap; }
+@media (max-width: 560px) {
+  #home-actions { gap: 10px; width: calc(100vw - 32px); max-width: 360px; }
+  #home-actions .btn { padding: 9px 10px; letter-spacing: 1.5px; font-size: 13px; }
+}
+
+/* ───────────── Story cards: photos in fixed-ratio boxes, one row ───────────── */
+.card { --gh: 230px; }
+.card .gallery {
+  display: flex;
+  gap: 10px;
+  max-width: calc(var(--gh) * var(--rs, 1) + 10px * (var(--n, 1) - 1));
+}
+.card .gallery img, .card .gallery .ph {
+  flex: var(--r, 0.75) 1 0%;
+  width: auto; height: auto;
+  min-width: 0;
+  max-height: none;
+  aspect-ratio: var(--r, 0.75);
+  object-fit: cover;
+  background: var(--paper-2);
+}
+
+/* Closing card: the payoff, carved from the same stone */
+.card.card-cta {
+  color: var(--ink);
+  background: var(--stone-surface);
+  box-shadow: var(--stone-edge), 0 12px 36px rgba(43, 34, 51, 0.3);
+  border-radius: 3px;
+  padding: 30px 34px;
+}
+.card.card-cta .kicker { color: var(--ink); }
+.card.card-cta h2 { font-size: clamp(30px, 3.2vw, 42px); }
+.card.card-cta p { color: var(--ink); }
+.card.card-cta .btn-big {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 52px;
+  margin-top: 18px;
+  font-size: 17px;
+  background: var(--ink);
+  color: var(--paper);
+  border: 0;
+  box-shadow: 0 0 0 1px var(--stone-line), 0 6px 18px rgba(43, 34, 51, 0.3);
+}
+.card.card-cta .btn-big:hover { background: var(--clay-dark); color: #fff; }
+.card.card-cta .btn-big:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* Narrow screens: cards use all the room below the sculptor; the time toggle moves up top */
+@media (max-width: 900px) {
+  #dock { left: auto; right: 12px; bottom: auto; top: calc(var(--header-h) + 10px); transform: none; }
+  .card, .card.side-left, .card.side-right {
+    top: calc((var(--fig-bottom) + 100vh) / 2 + 2px);
+    max-height: calc(100vh - var(--fig-bottom) - 16px);
+    padding: 12px 16px;
+  }
+  .card { --gh: 120px; }
+  .card .kicker { margin-bottom: 2px; font-size: 12px; }
+  .card h2 { font-size: 21px; margin-bottom: 6px; }
+  .card p { font-size: 16px; line-height: 1.4; margin-bottom: 4px; }
+  .card .gallery { margin: 8px 0 2px; }
+  .card.card-cta { padding: 14px 18px; }
+  .card.card-cta h2 { font-size: 24px; }
+  .card.card-cta .btn-big { margin-top: 10px; min-height: 48px; }
+}
+@media (max-width: 900px) and (max-height: 700px) {
+  .card { --gh: 90px; }
+}
+@media (max-width: 900px) {
+  .card, .card.side-left, .card.side-right {
+    top: calc(var(--fig-bottom) + 8px);
+    transform: translate(-50%, var(--y));
+  }
+  /* Photos rise into the open sky above the sculptor; the words stay below her. */
+  .card.has-gallery { overflow: visible; }
+  .card.has-gallery .gallery {
+    --gh: calc(var(--fig-top) - var(--header-h) - 72px);
+    position: absolute;
+    left: 16px; right: 16px;
+    bottom: calc(100% + var(--fig-bottom) - var(--fig-top) + 16px);
+    margin: 0 auto;
+    justify-content: center;
+  }
+  .card.has-gallery .gallery img { box-shadow: 0 0 0 1px rgba(43, 34, 51, 0.55), 0 8px 24px rgba(43, 34, 51, 0.25); }
+}
+@media (max-width: 900px) {
+  /* The closing card's button never scrolls out of view */
+  .card.card-cta { padding-bottom: 0; }
+  .card.card-cta p { font-size: 15.5px; line-height: 1.35; }
+  .card.card-cta .btn-big { position: sticky; bottom: 0; margin: 8px 0 0; outline-offset: -4px; box-shadow: 0 0 0 1px var(--stone-line), 0 -10px 12px -2px rgba(236, 232, 224, 0.95); }
+  .card.card-cta::after { content: ""; display: block; height: 12px; }
+}
+#home-actions { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+@media (max-width: 560px) {
+  #home-actions .btn { padding: 9px 8px; letter-spacing: 0.8px; font-size: 12px; gap: 6px; }
+}
+@media (max-width: 350px) {
+  #home-actions { width: calc(100vw - 20px); gap: 8px; }
+  #home-actions .btn { font-size: 11px; letter-spacing: 0.3px; padding: 9px 6px; }
+}
+
+/* ───────────── Resume: garden background, stone slabs, document view ───────────── */
+body.page.page-resume {
+  background:
+    linear-gradient(180deg, #4592d3 0 14%, #66afe0 14% 26%, #8fc9ea 26% 36%, #b8def0 36% 44%, #e2f0ec 44% 49%,
+      #376b2c 49% 50%, #4c8a3b 50% 53%, #66a54b 53% 54%, #ddd5c3 54%) fixed;
+}
+.page-resume .page-main { max-width: 860px; }
+.resume { display: grid; gap: 18px; }
+.resume-head, .resume-card { padding: 24px 28px; }
+.resume-head h1 { margin: 0 0 4px; }
+.resume-head h1:focus { outline: none; }
+.resume-head h1:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.page-main .resume-head .lede { margin: 0 0 16px; color: var(--ink); }
+.resume-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 0; }
+.resume-actions .btn { min-height: 44px; }
+.view-toggle { display: inline-flex; gap: 0; }
+.view-toggle .btn { border-radius: 0; }
+.view-toggle .btn:first-child { border-radius: 6px 0 0 6px; }
+.view-toggle .btn:last-child { border-radius: 0 6px 6px 0; margin-left: -1px; }
+.view-toggle .btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.resume-head .btn-link { background: var(--paper); }
+.resume-head .btn-link:hover { background: var(--ink); color: var(--paper); }
+.btn-quiet { background: transparent; border-color: transparent; text-decoration: underline; text-underline-offset: 4px; }
+
+.resume-dynamic { display: grid; gap: 18px; }
+.resume-dynamic[hidden], .resume-doc[hidden] { display: none; }
+.resume-card h2 { font-family: var(--display); font-size: 32px; line-height: 1.1; margin: 0 0 2px; }
+.resume-card h3 { font-family: var(--text); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--stone-moss); margin: 16px 0 6px; }
+.resume-card h2 + h3 { margin-top: 10px; }
+.resume-card .kicker { color: var(--ink); }
+.page-main .resume-card p, .page-main .resume-card li { font-size: 17px; line-height: 1.55; color: var(--ink); }
+.page-main .resume-card .resume-role { margin: 0 0 8px; font-style: italic; }
+.page-main .resume-card .resume-summary { margin: 0; font-size: 19px; }
+.resume-card ul { margin: 0; padding-left: 20px; }
+.resume-card li + li { margin-top: 6px; }
+.resume-card a { text-underline-offset: 3px; }
+.resume-card h2 ~ h2 { margin-top: 18px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0 !important; }
+.chips li, .chips li + li { margin: 0; }
+.page-main .chips li {
+  font-size: 15px; line-height: 1.2;
+  padding: 5px 9px;
+  background: var(--stone-top);
+  box-shadow: inset 0 -2px 0 var(--stone-shadow), 0 0 0 1px var(--stone-line);
+  border-radius: 2px;
+}
+.will-reveal .resume-card { opacity: 0; transform: translateY(18px); transition: opacity 450ms ease var(--d, 0ms), transform 450ms ease var(--d, 0ms); }
+.will-reveal .resume-card.is-in { opacity: 1; transform: none; }
+
+.resume-doc { padding: 36px 40px; border-radius: 10px; }
+.resume-doc .doc-head { border-bottom: 1px solid rgba(43, 34, 51, 0.35); padding-bottom: 12px; margin-bottom: 8px; }
+.page-main .resume-doc .doc-name { font-family: var(--display); font-weight: 600; font-size: 36px; line-height: 1.1; margin: 0; }
+.page-main .resume-doc .doc-tagline { margin: 2px 0 6px; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: var(--moss-dark); }
+.page-main .resume-doc .doc-contact { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
+.resume-doc h2 { font-family: var(--display); font-size: 26px; margin: 22px 0 8px; border-bottom: 1px solid rgba(43, 34, 51, 0.2); padding-bottom: 2px; }
+.resume-doc h3 { font-family: var(--text); font-size: 18px; font-weight: 600; margin: 14px 0 0; }
+.page-main .resume-doc p, .page-main .resume-doc li { font-size: 17px; line-height: 1.5; }
+.page-main .resume-doc .doc-meta { margin: 0 0 4px; color: var(--ink-soft); font-size: 15.5px; }
+.resume-doc ul { margin: 4px 0 0; padding-left: 20px; }
+.resume-doc li + li { margin-top: 4px; }
+.resume-doc .doc-skills { list-style: none; padding: 0; }
+.resume-noscript { padding: 28px 32px; }
+@media (max-width: 560px) {
+  .resume-head, .resume-card { padding: 18px; }
+  .resume-card h2 { font-size: 27px; }
+  .resume-doc { padding: 22px 18px; }
+  .page-main .resume-card p, .page-main .resume-card li, .page-main .resume-doc p, .page-main .resume-doc li { font-size: 16px; }
+  .view-toggle { width: 100%; }
+  .view-toggle .btn { flex: 1; justify-content: center; padding: 9px 8px; letter-spacing: 1px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .will-reveal .resume-card { opacity: 1; transform: none; transition: none; }
+}
+
+/* Print: just the document, clean black on white */
+@media print {
+  @page { margin: 14mm 16mm; }
+  html, body, body.page, body.page.page-resume { background: #fff !important; color: #000; }
+  #site-header, .skip-link, .resume-head, .resume-dynamic, #dock, #scene { display: none !important; }
+  .page-main, .page-resume .page-main { padding: 0; max-width: none; }
+  .resume-doc, .resume-doc[hidden] { display: block !important; padding: 0; box-shadow: none !important; background: #fff; border-radius: 0; }
+  .page-main .resume-doc p, .page-main .resume-doc li { font-size: 10.5pt; line-height: 1.35; color: #000; }
+  .page-main .resume-doc .doc-meta, .page-main .resume-doc .doc-tagline { color: #333; }
+  .resume-doc h2 { font-size: 15pt; margin: 12pt 0 4pt; break-after: avoid; }
+  .resume-doc h3 { font-size: 11pt; break-after: avoid; }
+  .resume-doc .doc-role { break-inside: avoid; }
+  .resume-doc a { color: #000; text-decoration: none; }
+}
+.resume-doc { box-shadow: 0 8px 28px rgba(43, 34, 51, 0.2), 0 0 0 1px rgba(43, 34, 51, 0.55); }
+.resume-head h1:focus-visible { outline: none; }
+@media (max-width: 560px) {
+  .view-toggle .btn { font-size: 12.5px; white-space: nowrap; }
+  .resume-actions { gap: 10px; }
+}
+
+/* ───────────── Projects: case studies + On the workbench ───────────── */
+.case-study { padding: 22px 0 26px; border-top: 1px solid rgba(43, 34, 51, 0.25); }
+.case-study:first-of-type { border-top: 0; padding-top: 4px; }
+.case-study h2 { font-family: var(--display); font-size: 34px; line-height: 1.1; margin: 4px 0 8px; }
+.page-main .case-summary { font-size: 20px; line-height: 1.5; margin: 0 0 6px; }
+.case-study h3 { font-family: var(--text); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--moss-dark); margin: 18px 0 4px; }
+.case-study section p { margin: 0 0 10px; }
+.links .btn { min-height: 44px; }
+.workbench { padding-top: 22px; border-top: 1px solid rgba(43, 34, 51, 0.25); }
+.workbench > h2 { font-family: var(--display); font-size: 34px; margin: 0 0 14px; }
+.wb-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; grid-template-columns: 1fr; }
+@media (min-width: 700px) { .wb-grid { grid-template-columns: repeat(3, 1fr); } }
+.wb-card { display: flex; flex-direction: column; background: #fffaf0; border-radius: 7px; overflow: hidden; box-shadow: 0 0 0 1px rgba(43, 34, 51, 0.4); }
+.wb-media { aspect-ratio: 16 / 9; position: relative; overflow: hidden; background: var(--stone); }
+.wb-media > img, .wb-media > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.wb-placeholder {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 0;
+}
+.wb-glyph { width: 36px; height: 36px; }
+.wb-status { font-family: var(--text); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink); }
+.wb-body { padding: 14px 16px 16px; }
+.wb-body h3 { font-family: var(--display); font-size: 24px; line-height: 1.15; margin: 2px 0 6px; }
+.page-main .wb-body p { font-size: 16.5px; line-height: 1.5; margin: 0; }
+.page-main .wb-body .item-meta { margin: 0; }
+
+/* ───────────── Speaking ───────────── */
+.talk { display: grid; gap: 16px; }
+.talk-media { aspect-ratio: 4 / 3; overflow: hidden; border-radius: 5px; background: var(--paper-2); box-shadow: 0 0 0 1px rgba(43, 34, 51, 0.4); }
+.talk-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.talk-body p:last-child { margin-bottom: 0; }
+@media (min-width: 700px) {
+  .talk.has-image { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: start; }
+}
+.topics { margin-top: 26px; }
+.topics h2, .page-main .topics h2 { font-family: var(--display); font-size: 30px; margin: 0 0 10px; }
+.yt-block { margin-top: 28px; padding: 18px; display: grid; gap: 18px; align-items: center; }
+.yt-media { aspect-ratio: 4 / 5; max-width: 260px; overflow: hidden; border-radius: 3px; box-shadow: 0 0 0 1px var(--stone-line); }
+.yt-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.page-main .yt-body p { color: var(--ink); margin: 0 0 6px; }
+.yt-block .btn-big { min-height: 48px; }
+@media (min-width: 600px) { .yt-block { grid-template-columns: 220px 1fr; } }
+
+/* ───────────── Let's get coffee ───────────── */
+.contact-actions .btn-big { min-height: 52px; }
+.page-main .contact-email { font-size: 18px !important; margin: 4px 0 18px; color: var(--ink); }
+.contact-email span { display: block; color: var(--ink-soft); font-size: 16px; }
+.contact-email a { font-size: 20px; text-underline-offset: 4px; overflow-wrap: anywhere; }
+.contact-secondary { display: flex; flex-wrap: wrap; gap: 12px; }
+.contact-secondary .btn { min-height: 44px; }
+@media (max-width: 560px) {
+  .contact-actions .btn-big, .yt-block .btn-big { width: 100%; justify-content: center; white-space: nowrap; letter-spacing: 1.5px; padding: 14px 12px; font-size: 15px; }
+  .case-study h2, .workbench > h2 { font-size: 30px; }
+}
+
+/* ───────────── Quote typewriter: final layout from first paint ───────────── */
+.q-text::after { content: none; }
+.js #quote:not(.is-typed) .q-rest { visibility: hidden; animation: q-failsafe 0s 5s forwards; }
+@keyframes q-failsafe { to { visibility: visible; } }
+/* zero-advance cursor, so it never changes how the line wraps */
+.q-typed::after {
+  content: "";
+  display: inline-block;
+  width: 0; height: 0.9em;
+  margin-right: 0;
+  vertical-align: -0.1em;
+  box-shadow: 0.08em 0 0 0.06em var(--clay);
+  animation: blink 900ms steps(1) infinite;
+}
+#quote.is-typed .q-typed::after { display: none; }
+@media (prefers-reduced-motion: reduce) { .q-typed::after { animation: none; } }
+
+/* Time toggle meets the 44px tap target everywhere */
+#dock .btn { min-width: 44px; min-height: 44px; justify-content: center; }
+/* No-JS fallbacks */
+#site-header noscript { display: contents; }
+
+/* ───────────── Legible type on stone: the header nav's serif (--display, 600) ───────────── */
+/* Home buttons under the sculptor match the top bar's links. */
+#home-actions .btn.stone {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: 0.2px;
+  text-transform: none;
+  line-height: 1.1;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+#home-actions .btn .icon { width: 13px; height: 9px; }
+@media (max-width: 1100px) { #home-actions .btn.stone { font-size: 19px; } }
+@media (max-width: 560px) { #home-actions .btn.stone { font-size: 17px; letter-spacing: 0.2px; padding: 9px 8px; } }
+@media (max-width: 350px) { #home-actions .btn.stone { font-size: 15px; letter-spacing: 0; } }
+
+/* Tagline and quote attribution: same serif, bolder and darker on the grain. */
+#site-header .bar.stone .tagline, #quote.stone figcaption {
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+#site-header .bar.stone .tagline { font-size: 16px; letter-spacing: 2.5px; }
+#quote.stone figcaption { font-size: 17px; letter-spacing: 3px; }
+@media (max-width: 560px) {
+  #site-header .bar.stone .tagline { font-size: 12px; letter-spacing: 1.5px; }
+  #quote.stone figcaption { font-size: 15px; letter-spacing: 2.5px; }
+}
+
+/* ───────────── Story cards carved from the same stone ───────────── */
+.card.stone {
+  color: var(--ink);
+  background: var(--stone-surface);
+  box-shadow: var(--stone-edge), 0 10px 30px rgba(43, 34, 51, 0.26);
+  border-radius: 3px;
+}
+.card.stone .kicker {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 2.5px;
+  color: var(--ink);
+}
+.card.stone h2 { font-size: clamp(22px, 1.9vw, 26px); color: var(--ink); }
+.card.stone p:not(.kicker) { font-size: 15.5px; font-weight: 500; color: var(--ink); }
+.card.stone .ph { background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(43, 34, 51, 0.08) 6px 12px), var(--stone-top); color: var(--ink); }
+.card.stone .btn-link { color: var(--ink); border-color: var(--stone-line); background: var(--stone-top); }
+.card.stone .btn-link:hover { background: var(--ink); color: var(--paper); }
+.card.card-cta.stone h2 { font-size: clamp(26px, 2.4vw, 34px); }
+@media (max-width: 900px) {
+  .card.stone .kicker { font-size: 11px; letter-spacing: 2px; margin-bottom: 2px; }
+  .card.stone h2 { font-size: 18px; font-weight: 700; }
+  .card.stone p:not(.kicker) { font-size: 16px; line-height: 1.4; }
+  .card.card-cta.stone h2 { font-size: 20px; }
+  .card.card-cta.stone p:not(.kicker) { font-size: 16px; line-height: 1.35; }
+}
+/* Reduced motion: cards don't slide; a short fade marks the swap. */
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: opacity 150ms linear; }
+}
+
+/* ───────────── Compact top bar: slimmer slab, smaller name, nav hit areas stay 44px ───────────── */
+#site-header .bar.stone, #site-header .bar.stone[class] { padding: 6px 28px; gap: 20px; }
+#site-header .who { gap: 1px; }
+#site-header .name { font-size: 29px; }
+#site-header .bar.stone .tagline { font-size: 12px; letter-spacing: 2px; line-height: 1.2; }
+#site-header .nav-link { font-size: 18px; }
+#site-header .actions { gap: 0 24px; }
+@media (max-width: 1100px) {
+  #site-header .nav-link { font-size: 17px; }
+  #site-header .actions { gap: 0 16px; }
+}
+@media (max-width: 900px) {
+  #site-header .bar.stone, #site-header .bar.stone[class] { padding: 6px 18px; gap: 14px; }
+  #site-header .name { font-size: 26px; }
+  #site-header .nav-link { font-size: 16px; }
+  #site-header .actions { gap: 0 12px; }
+}
+/* Phones: two tidy rows. Name and title share the first, all six links share the second. */
+@media (max-width: 800px) {
+  #site-header .bar.stone, #site-header .bar.stone[class] { padding: 5px 14px 0; gap: 4px 0; }
+  #site-header .who { flex: 1 0 100%; flex-direction: row; align-items: baseline; justify-content: space-between; gap: 8px; min-height: 24px; }
+  #site-header .name { font-size: 21px; line-height: 24px; }
+  #site-header .bar.stone .tagline { font-size: 10px; letter-spacing: 1.2px; white-space: nowrap; }
+  #site-header .actions { width: 100%; padding: 0 0 3px; justify-content: space-between; gap: 0 4px; }
+  #site-header .nav-link { font-size: 16px; letter-spacing: 0; align-items: flex-start; padding: 4px 0 0; margin: 0 0 -24px; }
+  #dock { top: calc(var(--header-h) + 28px); }
+}
+@media (max-width: 560px) {
+  #site-header .nav-link { font-size: 15px; }
+}
+@media (max-width: 480px) {
+  #site-header .nav-link { font-size: 14px; }
+}
+@media (max-width: 400px) {
+  #site-header .bar.stone, #site-header .bar.stone[class] { padding: 5px 10px 0; }
+  #site-header .nav-link { font-size: 13px; letter-spacing: -0.15px; }
+}
+@media (max-width: 380px) {
+  #site-header .actions[data-count="6"] .nav-link { font-size: 13px; letter-spacing: -0.15px; }
+}

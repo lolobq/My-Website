@@ -1,1 +1,10 @@
 .DS_Store
+
+# dev tooling (never committed)
+node_modules/
+test-results/
+playwright-report/
+.lighthouseci/
+
+# local push gate: blocked terms, one per line (never committed; see .githooks/)
+.disclosure-terms.local

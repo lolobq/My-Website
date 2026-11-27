@@ -1,0 +1,25 @@
+[33mcommit 8f4786ddc10dd9d74c9b7dfe8245c3e564a896ba[m
+Author: lolobq <lolobq47@gmail.com>
+Date:   Thu Nov 26 10:04:28 2026 -0500
+
+    QA: pin CI to Ubuntu 24.04; Reflections tests independent of shipped posts; sample-post guard on main
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+ .github/workflows/ci.yml |  6 [32m++++[m[31m--[m
+ tests/pages.e2e.spec.js  |  4 [32m++++[m
+ tests/site.e2e.spec.js   | 20 [32m++++++++++++++++++[m[31m--[m
+ tests/unit/pages.test.js | 21 [32m+++++++++++++++++[m[31m----[m
+ 4 files changed, 43 insertions(+), 8 deletions(-)
+
+[33mcommit 33effe966a017b77f44e0494cd484ee6d662af7e[m[33m ([m[1;36mHEAD -> [m[1;32magent-prebuild-snapshot[m[33m)[m
+Author: lolobq <lolobq47@gmail.com>
+Date:   Thu Nov 26 10:25:22 2026 -0500
+
+    QA: Lighthouse CI serves gzipped text like GitHub Pages (budgets unchanged)
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+ lighthouserc.json  |   2 [32m+[m[31m-[m
+ tests/serve-gz.mjs | 107 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ 2 files changed, 108 insertions(+), 1 deletion(-)

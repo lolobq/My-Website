@@ -90,14 +90,15 @@
   const mailto =
     `mailto:${S.email}` + (S.emailSubject ? `?subject=${encodeURIComponent(S.emailSubject)}` : "");
 
+  // Reflections always shows (Lauren's call); the page has its own empty state.
   const buttons = [
-    { id: "about", label: "About", href: "about.html" },
     { id: "resume", label: "Resume", href: "resume.html" },
     { id: "projects", label: "Projects", href: "projects.html" },
+    { id: "about", label: "About", href: "about.html" },
     { id: "reflections", label: "Reflections", href: "reflections.html" },
     { id: "speaking", label: "Speaking", href: "speaking.html" },
-    { id: "contact", label: "Contact", href: "contact.html" },
-  ];
+    { id: "contact", label: "Let's Get Coffee", href: "contact.html" },
+  ].filter(Boolean);
 
   const header = document.getElementById("site-header");
   if (!header) return;
@@ -105,18 +106,18 @@
   const here = location.pathname.split("/").pop() || "index.html";
 
   header.innerHTML = `
-    <div class="bar">
+    <div class="bar stone">
       <a class="who" href="index.html">
         <span class="name">${S.name}</span>
         <span class="tagline">${S.tagline}</span>
       </a>
-      <nav class="actions" aria-label="Links">
+      <nav class="actions" aria-label="Links" data-count="${buttons.length}">
         ${buttons
           .map(
             (b) =>
               `<a class="nav-link${here === b.href ? " is-current" : ""}" href="${b.href}"${
-                b.external ? ' target="_blank" rel="noopener"' : ""
-              } >${b.label}</a>`
+                here === b.href ? ' aria-current="page"' : ""
+              }${b.external ? ' target="_blank" rel="noopener"' : ""}>${b.label}</a>`
           )
           .join("")}
       </nav>
@@ -136,4 +137,24 @@
   // Placeholder portrait: the sprite's head drawn into the photo square.
   const av = document.getElementById("avatar");
   if (av && window.Sprites) window.Sprites.drawAvatar(av);
+})();
+
+/* Known image sizes, so every <img> gets width/height (no layout shift) and a fixed aspect box. */
+(function () {
+  const SIZES = {
+    "assets/img/surgery.webp": [600, 800],
+    "assets/img/transformation.webp": [800, 800],
+    "assets/img/discgolf-throw.webp": [800, 600],
+    "assets/img/discgolf-podium.webp": [900, 600],
+    "assets/img/speaking-disney.webp": [1200, 900],
+    "assets/img/speaking-room.webp": [1200, 900],
+    "assets/img/youtube.webp": [640, 800],
+    "assets/lauren.jpg": [480, 480],
+  };
+  const size = (src, fallback) => SIZES[src] || fallback || [4, 3];
+  window.Media = {
+    size,
+    ratio: (src, fallback) => { const [w, h] = size(src, fallback); return +(w / h).toFixed(4); },
+    attrs: (src, fallback) => { const [w, h] = size(src, fallback); return `width="${w}" height="${h}"`; },
+  };
 })();
